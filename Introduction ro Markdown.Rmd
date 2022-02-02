@@ -128,13 +128,14 @@ attach(midwest)
 1. Graphics
 ```{r}
 ggplot(midwest)+
-    geom_point(aes(county, state))
+  geom_point(aes(county, state))
 
 ggplot(midwest)+
     geom_point(aes(popdensity, percollege), shape = 15)
 
 ggplot(data = midwest) + 
-  geom_point(mapping = aes(x = popdensity, y = percollege, color = 'green'))
+  geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
+  theme_bw()
 ```
 
 2. Facets
@@ -162,6 +163,15 @@ ggplot(data = midwest)+
 ```{r}
 ggplot(midwest)+
     geom_smooth(aes(popdensity, percollege))
+
+ggplot(midwest, aes(popdensity, percollege))+
+  geom_point(aes(color = 'blue'))
+
+ggplot(midwest, aes(popdensity, percollege))+
+  geom_line(aes(linetype = state, color = state))+
+  theme_grey()
+
+ggplot()
 
 ggplot(midwest)+
     geom_smooth(aes(popdensity, percollege, linetype = state), se = FALSE)
