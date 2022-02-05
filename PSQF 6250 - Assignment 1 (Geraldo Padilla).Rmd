@@ -1,0 +1,43 @@
+---
+title: "PSQF 6250 - Assignment 1"
+author: "Geraldo B. Padilla F."
+date: "04-02-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+## **Research interests**:
+
+- Multilevel modeling
+- Computational analysis
+- Quantitative methodologies
+- Generalized linear models
+
+### Hiperlinks to main R project website
+
+Information about R project can be found here: <https://www.r-project.org/>. Or directly pressing [here](https://www.r-project.org/).
+
+#### Question 4
+```{r summ_iris}
+summary(iris)
+```
+
+##### Question 5
+
+| Descriptives | Sepal.Length | Sepal.Width | Petal.Length | Petal.Width|
+| :---: | :---: | :---: | :---: | :---: | :---:|
+| Min. | 4.300 | 2.000 | 1.000 | 0.100 |
+| Median | 5.800 | 3.000 | 4.350 |  1.300|
+| Max. | 7.900 | 4.400 | 6.900 | 2.500 |
+
+###### Question 6
+
+```{r hist_irisxsepal, fig.width = 8, fig.height = 6, echo=FALSE}
+hist(iris$Sepal.Length)
+```
+
