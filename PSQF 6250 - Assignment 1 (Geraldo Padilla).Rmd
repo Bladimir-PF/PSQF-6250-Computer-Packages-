@@ -16,7 +16,7 @@ output: html_document
 
 ### Hiperlinks to main R project website
 
-Information about R project can be found here: <https://www.r-project.org/>. Or directly pressing [here](https://www.r-project.org/).
+Information about R project can be found here: <https://www.r-project.org/>. Or directly by clicking [here](https://www.r-project.org/).
 
 #### Question 4
 ```{r summ_iris}
@@ -33,34 +33,45 @@ summary(iris)
 
 ###### Question 6
 
-```{r hist_sepal, echo=FALSE}
+```{r histsepal, echo=FALSE}
 hist(iris$Sepal.Length)
 ```
 
 ####### Questions 7
 
-My favorites places to take vacations:
+My favorite vacation spots:
 
-1. Bogota, Colombia
-   + To visit the historical downtown
-   + To drink coffee at the street
-   + To climb up the Monserrate by cable car
-2. Barcelona, Spain
-   * To visit the Catalunya Square in front of the La Sagrada Familia
-   * Walking through the Las Ramblas
-   * To visit the Gaudí Park
-3. Paris, France
-   + To visit the Eiffel Tower
-   + To go to the Louvre museum
+1. Bogota, Colombia:
+   + Visit the historical center
+   + Coffee on the street
+   + Climb the Monserrate by cable car
+   
+2. Barcelona, Spain:
+   * Visit the Plaza de Cataluña in front of the Sagrada Familia
+   * Stroll along the Ramblas
+   * Visit Gaudí Park
+   
+3. Paris, France:
+   + Visit the Eiffel Tower
+   + Spending time at the Louvre museum
    + Walking along the Senna river
 
 ######## Question 8
 
-The next step in our analysis is exploring some correlations in the data set First, the relationship between the length and width of the sepals, which is moderately negative with a magnitude of `r round(cor(iris$Sepal.Length, iris$Sepal.Width),2)`. On the other hand, between the length and width of the petals there is a strong  positive correlation ( r = `r round(cor(iris$Petal.Length, iris$Petal.Width), 2)`).
+The next step in our analysis is to explore some correlations in the data set. First, the relationship between the length and width of the sepals, which is slightly negative with a magnitude of `r round(cor(iris$Sepal.Length, iris$Sepal.Width),2)`. On the other hand, between the length and width of the petals there is a strong  positive correlation ( r = `r round(cor(iris$Petal.Length, iris$Petal.Width), 2)`).
 
 ######## Question 9
 
-```{r plot_sepal, echo=FALSE}
+```{r plotsepal, echo=FALSE, fig.cap = 'Association between length and width of Sepals'}
 plot(iris$Sepal.Length, iris$Sepal.Width)
+```
+
+######### Question 10
+
+```{r descriptives, eval=FALSE}
+x <- rnorm(100)
+y <- runif(100, min = 3, max = 8)
+mean(x)
+mean(y)
 ```
 
