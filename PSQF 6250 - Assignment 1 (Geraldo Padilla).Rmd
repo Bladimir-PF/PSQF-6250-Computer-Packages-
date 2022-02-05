@@ -5,10 +5,6 @@ date: "04-02-2022"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Question 1
 
 ## **Research interests**:
@@ -37,7 +33,34 @@ summary(iris)
 
 ###### Question 6
 
-```{r hist_irisxsepal, fig.width = 8, fig.height = 6, echo=FALSE}
+```{r hist_sepal, echo=FALSE}
 hist(iris$Sepal.Length)
+```
+
+####### Questions 7
+
+My favorites places to take vacations:
+
+1. Bogota, Colombia
+   + To visit the historical downtown
+   + To drink coffee at the street
+   + To climb up the Monserrate by cable car
+2. Barcelona, Spain
+   * To visit the Catalunya Square in front of the La Sagrada Familia
+   * Walking through the Las Ramblas
+   * To visit the Gaudí Park
+3. Paris, France
+   + To visit the Eiffel Tower
+   + To go to the Louvre museum
+   + Walking along the Senna river
+
+######## Question 8
+
+The next step in our analysis is exploring some correlations in the data set First, the relationship between the length and width of the sepals, which is moderately negative with a magnitude of `r round(cor(iris$Sepal.Length, iris$Sepal.Width),2)`. On the other hand, between the length and width of the petals there is a strong  positive correlation ( r = `r round(cor(iris$Petal.Length, iris$Petal.Width), 2)`).
+
+######## Question 9
+
+```{r plot_sepal, echo=FALSE}
+plot(iris$Sepal.Length, iris$Sepal.Width)
 ```
 

@@ -14,13 +14,13 @@ To create a new paragraph, just include a blank line.
 
 **Bold** or *italics* can be done easily. Also can use __bold__ or _italics_. Code can be shown in monospace with backticks `code example`.
 
-2. Level 2 Header
+## Level 2 Header
 Lists are easy:  
 
 - Unordered
 - List   
-    * Nested version list
-    + Idea 2
+   * Nested version list
+   + Idea 2
 - Third
 
 ### Ordered Lists
