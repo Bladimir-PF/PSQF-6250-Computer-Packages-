@@ -245,15 +245,47 @@ library("ggrepel")
 library("ggforce")
 library("patchwork")
 library('palmerpenguins')
+library('ggthemes')
 attach(penguins)
-theme_set(theme_bw(base_size = 16))
+theme_set(theme_bw(base_size = 14))
 ```
 
+
+## ggrepel
 ```{r}
 names(penguins)
 ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
-  geom_point(size = 4, aes(color = species, shape = species))+
-  xlab('ss')+
-  ylab('e')
+  geom_point(size = 2, aes(shape = species))+
+  geom_text_repel(aes(label = species))
+  xlab('Flipper')+
+  ylab('Bill')
+#theme(legend.position="none") it removes the legend
+  
+set.seed(100)
+penguins%>%
+  group_by(species)%>%
+  sample_n(10)%>%
+  ggplot(., aes(flipper_length_mm, bill_length_mm))+
+  geom_point(size = 4, aes(shape = species))+
+  geom_label_repel(aes(label = species))+
+  xlab('Flipper')+
+  ylab('Bill')
+```
+
+## ggforce: it requires complete cases
+```{r}
+penguins%>%
+  drop_na(flipper_length_mm, bill_length_mm)%>%
+ggplot(., aes(flipper_length_mm, bill_length_mm))+
+  geom_point(aes(shape = species), size = 3)+
+  geom_mark_ellipse(aes(fill = species, label = species))
+  scale_x_continuous('Flipper')+
+  scale_y_continuous('Bill', limits = c(25, 70))
+
+ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
+  geom_point(aes(shape = species, color = species), size = 3)+
+  xlab('Flipper')+
+  ylab('Bill')+
+  facet_zoom(y = species == 'Gentoo')
 ```
 
