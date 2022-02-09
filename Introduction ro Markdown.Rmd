@@ -123,6 +123,7 @@ Another option is to compile the `.Rmd` file with knitr, then use [pandoc](http:
 library(tidyverse)
 midwest = data.frame(midwest)
 attach(midwest)
+knitr::opts_chunk$set(fig.width = 6, fig.height = 6)
 ```
 
 1. Graphics
@@ -234,3 +235,25 @@ ggplot(midwest, aes(popdensity, percollege, color = state))+
   scale_color_discrete('State')+
   theme_bw()
 ```
+
+---
+
+# Week 3 ggplot2 Extensions
+
+```{r}
+library("ggrepel")
+library("ggforce")
+library("patchwork")
+library('palmerpenguins')
+attach(penguins)
+theme_set(theme_bw(base_size = 16))
+```
+
+```{r}
+names(penguins)
+ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
+  geom_point(size = 4, aes(color = species, shape = species))+
+  xlab('ss')+
+  ylab('e')
+```
+
