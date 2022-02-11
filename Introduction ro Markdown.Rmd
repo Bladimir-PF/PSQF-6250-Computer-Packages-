@@ -246,6 +246,7 @@ library("ggforce")
 library("patchwork")
 library('palmerpenguins')
 library('ggthemes')
+library(tidyr)
 attach(penguins)
 theme_set(theme_bw(base_size = 14))
 ```
@@ -287,5 +288,52 @@ ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
   xlab('Flipper')+
   ylab('Bill')+
   facet_zoom(y = species == 'Gentoo')
+```
+
+## ggsignif (it requires more evidences)
+```{r}
+library("ggsignif")
+ggplot(penguins, aes(flipper_length_mm, bill_length_mm)) +
+  geom_boxplot()+
+  geom_signif(comparisons = list(c("Adelie", "Chinstrap")), map_signif_level = TRUE, textsize = 6)
+```
+
+## patchwork
+```{r}
+p1 = ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
+  geom_point(size = 4, aes(color = species, shape = species))+
+  xlab('Flipper')+
+  ylab('Bill Length')+
+  theme(legend.position = 'none', axis.title=element_text(size=10,face="bold"),
+        axis.text=element_text(size=6))
+
+p2 = ggplot(penguins, aes(flipper_length_mm, bill_depth_mm))+
+  geom_point(size = 4, aes(color = species, shape = species))+
+  xlab('Flipper')+
+  ylab('Bill Length')+
+  theme(legend.position = 'none', axis.title=element_text(size=10,face="bold"),
+        axis.text=element_text(size=6))
+
+p3 = ggplot(drop_na(penguins, sex), aes(sex, body_mass_g))+
+  geom_violin(aes(fill = species), draw_quantiles = c(.1, .5, .9))+
+  xlab('Sex')+
+  ylab('Boddy mass')+
+  theme(legend.position = 'none', axis.title=element_text(size=10,face="bold"),
+        axis.text=element_text(size=6))
+
+
+
+p1+p2
+p1/p2
+p3|(p1/p2)
+(p1 + p2) / p3
+```
+
+---
+
+# Week 4 Data Manipulation
+
+```{r}
+
 ```
 
