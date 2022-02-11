@@ -333,7 +333,38 @@ p3|(p1/p2)
 
 # Week 4 Data Manipulation
 
-```{r}
+## Book chapter 5: Data transformation (R for Data Science)
 
+```{r}
+library(nycflights13)
+library(tidyverse)
+```
+
+
+```{r, message=FALSE}
+install.packages('fivethirtyeight')
+install.packages('fivethirtyeightdata', repos = 'https://fivethirtyeightdata.github.io/drat/', type =
+'source')
+library(fivethirtyeight)
+library(tidyverse)
+library(dplyr)
+```
+## Filter
+```{r}
+(congress_80 = filter(congress_age, congress == 80))
+(senate = filter(congress_80, chamber == 'senate'))
+filter(congress_age, congress ==80, chamber == 'senate')
+filter(congress_age, congress == 80 | congress == 81)
+filter(congress_age, congress %in% c(80,81))
+filter(congress_age, congress !=80)
+filter(congress_age, congress == 80 & !chamber == 'senate')
+filter(congress_age, party =='D' & congress ==100) #democrats from the 100th congress
+filter(congress_age, age > 79) #congress members who are older than 80 years
+```
+
+```{r}
+df = tibble(x = c(200, 30, NA, 45, 212))
+filter(df, x > 199) #all values greater than 200
+filter(df, x %in% c(200, 212, NA))
 ```
 
