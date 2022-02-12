@@ -340,6 +340,28 @@ library(nycflights13)
 library(tidyverse)
 ```
 
+### 5.5 Add new variables with mutate()
+```{r}
+flights_sml <- select(flights, 
+  year:day, 
+  ends_with("delay"), 
+  distance, 
+  air_time)
+
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  speed = distance / air_time * 60)
+
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours)
+
+transmute(flights,
+  gain = dep_delay - arr_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours)
+```
 
 ```{r, message=FALSE}
 install.packages('fivethirtyeight')
@@ -349,7 +371,8 @@ library(fivethirtyeight)
 library(tidyverse)
 library(dplyr)
 ```
-## Filter
+
+## Filter (rows)
 ```{r}
 (congress_80 = filter(congress_age, congress == 80))
 (senate = filter(congress_80, chamber == 'senate'))
@@ -362,9 +385,163 @@ filter(congress_age, party =='D' & congress ==100) #democrats from the 100th con
 filter(congress_age, age > 79) #congress members who are older than 80 years
 ```
 
+## Exercise to select NA's
 ```{r}
 df = tibble(x = c(200, 30, NA, 45, 212))
 filter(df, x > 199) #all values greater than 200
 filter(df, x %in% c(200, 212, NA))
+```
+
+## Arrange
+```{r}
+arrange(congress_age, state, party)
+arrange(congress_age, desc(congress)) #descending order
+
+congress_age%>%
+filter(congress == 80 & chamber == 'house', party =='D')%>%
+  arrange(state, age)
+```
+
+## Select (columns)
+```{r}
+select(congress_age, congress, chamber, party, age)
+select(congress_age, contains('name'))
+select(congress_age, ends_with('name'))
+select(congress_age, congress:birthday)
+select(congress_age, -congress, -chamber) #Select all variables except this one. 
+all.equal(a, b)
+
+rename(congress_age, a = chamber)
+```
+
+### Exercises
+```{r}
+select(congress_age, starts_with('c'))
+names(congress_age)
+a = rename(congress_age, x1=congress, x2=chamber, x3=bioguide)
+select(a, num_range('x',1:3))
+```
+
+## Mutate (add columns to the dataset)
+```{r}
+congress_red = select(congress_age, congress, chamber, state, party)
+mutate(congress_red,
+       democrat = ifelse(party == 'D', 1, 0),
+       num_democrat = sum(democrat))
+```
+
+### Exercises
+```{r}
+names(diamonds)
+a = select(diamonds, carat, price)
+b = a%>%
+  mutate(price_per_carat = price/carat,
+         rank = min_rank(price_per_carat))%>%
+  arrange(rank)%>%
+  select(price, rank)
+c = a%>%
+  mutate(rank = min_rank(price))%>%
+  arrange(rank)%>%
+  select(price, rank)
+all.equal(b, c)
+```
+
+## Summarise (it collpases all the data into one row)
+```{r}
+congress2 = mutate(congress_age,
+                   democrat = ifelse(party == 'D', 1, 0))
+summarise(congress2,
+          num_democrat = sum(democrat))
+
+congress_grp = group_by(congress2, congress)
+summarise(congress_grp,
+          num_democrat = sum(democrat),
+          total = n(),
+          prop_democrat = num_democrat/total)
+```
+
+### Exercise
+```{r}
+rep = congress_age%>%
+  group_by(congress)%>%
+  mutate(reps = ifelse(party == 'R', 1, 0))%>%
+  summarise(count = sum(reps),
+            repb = mean(reps),
+            total = n(),
+            prop_rep = repb/total,
+            prop_rep2 = count/total)
+
+congress_age%>%
+  group_by(congress)%>%
+  summarise(youngest = min(age),
+          oldest = max(age))
+
+congress_age%>%
+  group_by(congress)%>%
+  arrange(age)%>%
+  summarise(
+    youngest = first(age),
+    oldest = last(age))
+
+group_by(congress_age, congress, party)%>%
+  summarise(total = n())
+```
+
+## Chaining commands together
+```{r}
+congress_age%>%
+  filter(congress >= 100)%>%
+  group_by(congress, chamber)%>%
+  mutate(democrat = ifelse(party == 'D', 1, 0))%>%
+  summarise(
+    n_democrats = sum(democrat),
+    total = n(),
+    prop_democrat = n_democrats/total)
+
+summarise(
+  mutate(
+    group_by(
+      filter(congress_age, congress >= 100),
+    congress, chamber),
+  democrat = ifelse(party == 'D', 1, 0)),
+n_democrats = sum(democrat),
+total = n(),
+prop_democrats = n_democrats/total)
+```
+
+### Exercise
+```{r}
+diamonds%>%
+  filter(color %in% c('D', 'E', 'F') & cut %in% c('Fair', 'Good', 'Very Good'))%>%
+  group_by(clarity)%>%
+  mutate(f_color = ifelse(color == 'F', 1, 0),
+         vg_cut = ifelse(cut == 'Very Good', 1, 0))%>%
+  summarise(
+    avg = mean(carat),
+    sd = sd(carat),
+    avg_p = mean(price),
+    num = n(),
+    summary_f_color = mean(f_color),
+    summary_vg_cut = mean(vg_cut))
+
+summarise(
+  group_by(
+    mutate(
+      filter(
+        diamonds, 
+        color %in% c('D', 'E', 'F') & cut %in% c('Fair', 'Good', 'Very Good')
+      ),
+      f_color = ifelse(color == 'F', 1, 0),
+      vg_cut = ifelse(cut == 'Very Good', 1, 0)
+    ),
+    clarity
+  ),
+  avg = mean(carat),
+  sd = sd(carat),
+  avg_p = mean(price),
+  num = n(),
+  summary_f_color = mean(f_color),
+  summary_vg_cut = mean(vg_cut)
+)
 ```
 
