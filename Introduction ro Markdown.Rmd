@@ -545,3 +545,125 @@ summarise(
 )
 ```
 
+
+
+# Week 5 Exploratory Data Analysis
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+```
+
+## Missing data
+```{r}
+flights
+summary(flights)
+filter(flights, is.na(dep_time))
+filter(flights, is.na(arr_delay) & !is.na(arr_time))
+flights%>%
+  mutate(miss_arrival = is.na(arr_time))%>%
+  ggplot(aes(sched_arr_time, ..density..))+
+  geom_freqpoly(aes(color = miss_arrival))+
+  theme_bw()
+```
+
+## Variation
+```{r}
+#Qualitative variables
+ggplot(flights, aes(as.factor(month)))+
+  geom_bar()+
+  theme_bw()
+
+ggplot(flights, aes(month))+
+  geom_bar()+
+  theme_bw()+
+  xlim(0, 13)
+
+flights%>%
+  count(cut_width(month, 1))
+
+#Quantitative variables
+ggplot(flights, aes(distance))+
+  geom_histogram(bandwith = 30)+
+  theme_bw()
+
+ggplot(flights, aes(distance))+
+  geom_freqpoly(aes(color = as.factor(month)))+
+  theme_bw()
+
+ggplot(flights, aes(distance))+
+  geom_density(aes(color = as.factor(month)))+
+  theme_bw()
+
+ggplot(flights, aes(distance))+
+  geom_histogram(bandwith = 100)+
+  theme_bw()
+
+flights%>%
+  count(month, cut_width(distance, 100))
+
+flights%>%
+  summarize(
+    var = var(distance, na.rm = TRUE),
+    sd = sd(distance, na.rm = TRUE),
+    min = min(distance, na.rm = T),
+    max = max(distance, na.rm = T))
+```
+
+## Covariation
+```{r}
+flights%>%
+  select(day, month)%>%
+  summary()
+
+ggplot(flights, aes(as.factor(month), as.factor(day)))+
+  geom_count()+
+  theme_bw()
+
+flights%>%
+  count(month, day)%>%
+  ggplot(aes(as.factor(month), as.factor(day)))+
+  geom_tile(aes(fill = n))+
+  theme_bw()
+
+flights%>%
+  count(origin, carrier)%>%
+  ggplot(aes(origin, carrier))+
+  geom_tile(aes(fill = n))+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_point(alpha = .05)+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_boxplot(aes(group = cut_width(air_time, 50)))+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_hex()+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_bin2d()+
+  theme_bw()
+```
+
+### Adding a third variable
+```{r}
+
+```
+
+### Exercise
+```{r}
+flights%>%
+  count(month)
+count(flights, month, day)
+df = data.frame(table(flights$day))
+colnames(df) <-  c('day', 'n')
+arrange(df, desc(n))
+
+ggplot(flights, aes(air_time))+
+  geom_density(aes(color = as.factor(month)))+
+  theme_bw()
+```
