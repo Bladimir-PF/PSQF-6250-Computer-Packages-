@@ -3,64 +3,71 @@ title: "Introduction to Markdown"
 author: "Geraldo B. Padilla F."
 date: "January 23, 2022"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 # Week 1 Introduction
 
-Text is written in Markdown. This is a simple markup language that takes care of formatting and allows for quick easy formatting.
+Text is written in Markdown. This is a simple markup language that takes
+care of formatting and allows for quick easy formatting.
 
-1. Sample Title
-To create a new paragraph, just include a blank line.
+1.  Sample Title To create a new paragraph, just include a blank line.
 
-**Bold** or *italics* can be done easily. Also can use __bold__ or _italics_. Code can be shown in monospace with backticks `code example`.
+**Bold** or *italics* can be done easily. Also can use **bold** or
+*italics*. Code can be shown in monospace with backticks `code example`.
 
 ## Level 2 Header
-Lists are easy:  
 
-- Unordered
-- List   
-   * Nested version list
-   + Idea 2
-- Third
+Lists are easy:
+
+-   Unordered
+
+-   List
+
+    -   Nested version list
+    -   Idea 2
+
+-   Third
 
 ### Ordered Lists
-Use numbers to create ordered list:  
 
-1. first
-1. second
-3. third
-7. fourth
+Use numbers to create ordered list:
 
-3. Create Links
-Links are easy, two different versions.   
-[Markdown Syntax](http://daringfireball.net/projects/markdown)   
-<http://daringfireball.net/projects/markdown>
+1.  first
 
-4. Images are similar
-![alt text](https:x.png "UI Logo")
-5. Tables
-Tables are also simple.
+2.  second
+
+3.  third
+
+4.  fourth
+
+5.  Create Links Links are easy, two different versions.\
+    [Markdown Syntax](http://daringfireball.net/projects/markdown)\
+    <http://daringfireball.net/projects/markdown>
+
+6.  Images are similar ![alt text](https:x.png "UI Logo")
+
+7.  Tables Tables are also simple.
 
 | Column 1 | Column 2 |
 |----------|----------|
-| Text     | Text     | 
-| Text     | Text     | 
+| Text     | Text     |
+| Text     | Text     |
 
+6.  Block Quotes Block quotes:
 
-6. Block Quotes
-Block quotes:
+> This is an example of a block quote that is wrapped. The text will be
+> indented as a block quote automatically.
 
- > This is an example of a block quote
- > that is wrapped. The text will be indented
- > as a block quote automatically.
- 
+7.  Line Break\
+    A line break can be made with three or more dashed or asterisks
 
-7. Line Break  
-A line break can be made with three or more dashed or asterisks
-
-8. Dynamic Documents
+8.  Dynamic Documents
 
 8.1 Using markdown, R code can be directly embedded into the document.
+
 ```{r}
 x <- rnorm(100)
 y <- runif(100, min = 3, max = 8)
@@ -70,7 +77,8 @@ mean(y)
 
 8.2 Showing additional code options
 
-- Do not show syntax
+-   Do not show syntax
+
 ```{r, echo = FALSE}
 x <- rnorm(100)
 y <- runif(100, min = 3, max = 8)
@@ -78,7 +86,8 @@ mean(x)
 mean(y)
 ```
 
-- Do not print results
+-   Do not print results
+
 ```{r, results = "hide"}
 x <- rnorm(100)
 y <- runif(100, min = 0, max = 1)
@@ -86,36 +95,50 @@ mean(x)
 mean(y)
 ```
 
-- Automatically include figures
+-   Automatically include figures
+
 ```{r fig, fig.width = 8, fig.height = 6}
 x <- rnorm(100)
 y <- runif(100, min = 3, max = 8)
 plot(x, y)
 ```
 
-The `knitr` website has additional chunk options <http://yihui.name/knitr/options/>. You can even set global options by doing something like the following:
+The `knitr` website has additional chunk options
+<http://yihui.name/knitr/options/>. You can even set global options by
+doing something like the following:
 
 ```{r global_opts, eval = FALSE}
 knitr::opts_chunk$set(fig.width = 8, fig.height = 6, echo = FALSE,
                       warning = FALSE, message = FALSE)
 ```
 
-9. Inline code
-`knitr` also has the ability to run code inline. Therefore, if we wanted to report the correlation between `x` and `y` reported above, we can do that. 
+9.  Inline code `knitr` also has the ability to run code inline.
+    Therefore, if we wanted to report the correlation between `x` and
+    `y` reported above, we can do that.
 
 ```{r, echo=FALSE}
 a = cor(x,y)
 ```
 
-For example, the correlation between student test scores (x) and the student grade (y) is
-`r round(cor(x, y), 3)`.
+For example, the correlation between student test scores (x) and the
+student grade (y) is `r round(cor(x, y), 3)`.
 
-Another options is to use inline code linking the r options with an object created in a previous chunk = `r a`
+Another options is to use inline code linking the r options with an
+object created in a previous chunk = `r a`
 
-10. Compile document
-The easiest way to compile the document is to use the "Knit" button in Rstudio. This button will directly compile the document into an html file based on the specification of the `output` option at the top of this file. Changing the `output` options can produce a pdf (`output: pdf_document`) or a word file (`output: word_document`).
+10. Compile document The easiest way to compile the document is to use
+    the "Knit" button in Rstudio. This button will directly compile the
+    document into an html file based on the specification of the
+    `output` option at the top of this file. Changing the `output`
+    options can produce a pdf (`output: pdf_document`) or a word file
+    (`output: word_document`).
 
-Another option is to compile the `.Rmd` file with knitr, then use [pandoc](http://pandoc.org/) to convert it to another option via the command line. You could also use the `rmarkdown` package in R which will include both the `knitr` package and the `pandoc` program. More information can be found here: <http://kbroman.org/knitr_knutshell/pages/Rmarkdown.html>
+Another option is to compile the `.Rmd` file with knitr, then use
+[pandoc](http://pandoc.org/) to convert it to another option via the
+command line. You could also use the `rmarkdown` package in R which will
+include both the `knitr` package and the `pandoc` program. More
+information can be found here:
+<http://kbroman.org/knitr_knutshell/pages/Rmarkdown.html>
 
 # Week 2 ggplot2
 
@@ -126,7 +149,8 @@ attach(midwest)
 knitr::opts_chunk$set(fig.width = 6, fig.height = 6)
 ```
 
-1. Graphics
+1.  Graphics
+
 ```{r}
 ggplot(midwest)+
   geom_point(aes(county, state))
@@ -139,7 +163,8 @@ ggplot(data = midwest) +
   theme_bw()
 ```
 
-2. Facets
+2.  Facets
+
 ```{r}
 ggplot(data = midwest)+
     geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
@@ -160,7 +185,8 @@ ggplot(data = midwest)+
 # the dot means 'do not put anything on the rows'.
 ```
 
-3. Geoms
+3.  Geoms
+
 ```{r}
 ggplot(midwest)+
     geom_smooth(aes(popdensity, percollege))
@@ -178,7 +204,8 @@ ggplot(midwest)+
     geom_smooth(aes(popdensity, percollege, linetype = state), se = FALSE)
 ```
 
-4. Combining multiples Geoms
+4.  Combining multiples Geoms
+
 ```{r}
 ggplot(data = midwest)+
     geom_smooth(mapping = aes(popdensity, percollege, linetype = 'solid', color = state), se = FALSE)+
@@ -193,7 +220,8 @@ ggplot(midwest, aes(x=popdensity, y=percollege))+
     geom_smooth(se = FALSE)
 ```
 
-5. Geoms for single variables
+5.  Geoms for single variables
+
 ```{r}
 ggplot(midwest, aes(state))+
     geom_bar()
@@ -236,7 +264,7 @@ ggplot(midwest, aes(popdensity, percollege, color = state))+
   theme_bw()
 ```
 
----
+------------------------------------------------------------------------
 
 # Week 3 ggplot2 Extensions
 
@@ -251,8 +279,8 @@ attach(penguins)
 theme_set(theme_bw(base_size = 14))
 ```
 
-
 ## ggrepel
+
 ```{r}
 names(penguins)
 ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
@@ -274,6 +302,7 @@ penguins%>%
 ```
 
 ## ggforce: it requires complete cases
+
 ```{r}
 penguins%>%
   drop_na(flipper_length_mm, bill_length_mm)%>%
@@ -291,6 +320,7 @@ ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
 ```
 
 ## ggsignif (it requires more evidences)
+
 ```{r}
 library("ggsignif")
 ggplot(penguins, aes(flipper_length_mm, bill_length_mm)) +
@@ -299,6 +329,7 @@ ggplot(penguins, aes(flipper_length_mm, bill_length_mm)) +
 ```
 
 ## patchwork
+
 ```{r}
 p1 = ggplot(penguins, aes(flipper_length_mm, bill_length_mm))+
   geom_point(size = 4, aes(color = species, shape = species))+
@@ -329,7 +360,7 @@ p3|(p1/p2)
 (p1 + p2) / p3
 ```
 
----
+------------------------------------------------------------------------
 
 # Week 4 Data Manipulation
 
@@ -341,6 +372,7 @@ library(tidyverse)
 ```
 
 ### 5.5 Add new variables with mutate()
+
 ```{r}
 flights_sml <- select(flights, 
   year:day, 
@@ -373,6 +405,7 @@ library(dplyr)
 ```
 
 ## Filter (rows)
+
 ```{r}
 (congress_80 = filter(congress_age, congress == 80))
 (senate = filter(congress_80, chamber == 'senate'))
@@ -386,6 +419,7 @@ filter(congress_age, age > 79) #congress members who are older than 80 years
 ```
 
 ## Exercise to select NA's
+
 ```{r}
 df = tibble(x = c(200, 30, NA, 45, 212))
 filter(df, x > 199) #all values greater than 200
@@ -393,6 +427,7 @@ filter(df, x %in% c(200, 212, NA))
 ```
 
 ## Arrange
+
 ```{r}
 arrange(congress_age, state, party)
 arrange(congress_age, desc(congress)) #descending order
@@ -403,6 +438,7 @@ filter(congress == 80 & chamber == 'house', party =='D')%>%
 ```
 
 ## Select (columns)
+
 ```{r}
 select(congress_age, congress, chamber, party, age)
 select(congress_age, contains('name'))
@@ -415,6 +451,7 @@ rename(congress_age, a = chamber)
 ```
 
 ### Exercises
+
 ```{r}
 select(congress_age, starts_with('c'))
 names(congress_age)
@@ -423,6 +460,7 @@ select(a, num_range('x',1:3))
 ```
 
 ## Mutate (add columns to the dataset)
+
 ```{r}
 congress_red = select(congress_age, congress, chamber, state, party)
 mutate(congress_red,
@@ -431,6 +469,7 @@ mutate(congress_red,
 ```
 
 ### Exercises
+
 ```{r}
 names(diamonds)
 a = select(diamonds, carat, price)
@@ -447,6 +486,7 @@ all.equal(b, c)
 ```
 
 ## Summarise (it collpases all the data into one row)
+
 ```{r}
 congress2 = mutate(congress_age,
                    democrat = ifelse(party == 'D', 1, 0))
@@ -461,6 +501,7 @@ summarise(congress_grp,
 ```
 
 ### Exercise
+
 ```{r}
 rep = congress_age%>%
   group_by(congress)%>%
@@ -488,6 +529,7 @@ group_by(congress_age, congress, party)%>%
 ```
 
 ## Chaining commands together
+
 ```{r}
 congress_age%>%
   filter(congress >= 100)%>%
@@ -510,6 +552,7 @@ prop_democrats = n_democrats/total)
 ```
 
 ### Exercise
+
 ```{r}
 diamonds%>%
   filter(color %in% c('D', 'E', 'F') & cut %in% c('Fair', 'Good', 'Very Good'))%>%
@@ -545,42 +588,54 @@ summarise(
 )
 ```
 
-
-
 # Week 5 Exploratory Data Analysis
 
-```{r}
+```{r, message=FALSE}
 library(nycflights13)
 library(tidyverse)
 ```
 
 ## Missing data
+
 ```{r}
 flights
 summary(flights)
 filter(flights, is.na(dep_time))
 filter(flights, is.na(arr_delay) & !is.na(arr_time))
+
 flights%>%
   mutate(miss_arrival = is.na(arr_time))%>%
   ggplot(aes(sched_arr_time, ..density..))+
   geom_freqpoly(aes(color = miss_arrival))+
   theme_bw()
+
+sum(is.na(flights$dep_time))
 ```
 
 ## Variation
+
 ```{r}
 #Qualitative variables
+
+count(flights, month, day)
+
 ggplot(flights, aes(as.factor(month)))+
+  geom_bar()+
+  theme_bw()
+
+ggplot(flights, aes(cut_width(month, 1)))+
   geom_bar()+
   theme_bw()
 
 ggplot(flights, aes(month))+
   geom_bar()+
-  theme_bw()+
-  xlim(0, 13)
-
-flights%>%
-  count(cut_width(month, 1))
+  scale_x_continuous(n.breaks = 11)
+  theme_bw()
+  
+ggplot(flights, aes(month))+
+  geom_bar()+
+  scale_x_continuous(breaks = 11)
+  theme_bw()
 
 #Quantitative variables
 ggplot(flights, aes(distance))+
@@ -604,25 +659,27 @@ flights%>%
 
 flights%>%
   summarize(
-    var = var(distance, na.rm = TRUE),
+    var = var(distance, na.rm = TRUE), # NAs truncate the process
     sd = sd(distance, na.rm = TRUE),
     min = min(distance, na.rm = T),
     max = max(distance, na.rm = T))
 ```
 
-## Covariation
+## Covariation: there are patterns between variables and they arnt constant across values of each one
+
 ```{r}
 flights%>%
   select(day, month)%>%
   summary()
 
-ggplot(flights, aes(as.factor(month), as.factor(day)))+
+#Qualitative variables
+ggplot(flights, aes(origin, carrier))+
   geom_count()+
   theme_bw()
 
 flights%>%
-  count(month, day)%>%
-  ggplot(aes(as.factor(month), as.factor(day)))+
+  count(origin, carrier)%>%
+  ggplot(aes(origin, carrier))+
   geom_tile(aes(fill = n))+
   theme_bw()
 
@@ -632,13 +689,14 @@ flights%>%
   geom_tile(aes(fill = n))+
   theme_bw()
 
+#Quantitative variables
 ggplot(flights, aes(air_time, arr_delay))+
   geom_point(alpha = .05)+
   theme_bw()
 
 ggplot(flights, aes(air_time, arr_delay))+
   geom_boxplot(aes(group = cut_width(air_time, 50)))+
-  theme_bw()
+  theme_bw() 
 
 ggplot(flights, aes(air_time, arr_delay))+
   geom_hex()+
@@ -650,20 +708,70 @@ ggplot(flights, aes(air_time, arr_delay))+
 ```
 
 ### Adding a third variable
-```{r}
 
+```{r}
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_hex()+
+  facet_grid(.~ origin)+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_point(aes(color = origin))+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_hex()+
+  theme_bw()+
+  facet_wrap(.~ cut_width(dep_time, 250))
 ```
 
-### Exercise
+### Correlation
+
 ```{r}
 flights%>%
-  count(month)
-count(flights, month, day)
-df = data.frame(table(flights$day))
-colnames(df) <-  c('day', 'n')
-arrange(df, desc(n))
+  select(air_time, arr_delay, dep_time)%>%
+  cor(use = 'pairwise.complete.obs')
 
-ggplot(flights, aes(air_time))+
-  geom_density(aes(color = as.factor(month)))+
+library(GGally)
+flights%>%
+  select(air_time, arr_delay, dep_time)%>%
+  na.omit()%>%
+  sample_n(1000)%>%
+  ggpairs(upper = list(discrete = "count"),
+          lower = list(discrete = "facetbar"))
+
+ggplot(flights, aes(dep_delay, arr_delay))+
+  facet_grid(.~ origin)+
+  geom_point()
+
+ggplot(flights, aes(dep_delay, arr_delay))+
+  facet_wrap(.~ origin)+
+  geom_point()
+
+select(flights, dep_delay, arr_delay, dep_time)%>%
+  cor(use = 'pairwise.complete.obs')
+```
+
+## Rare/Common cases
+
+```{r}
+flights%>%
+  ggplot(aes(distance))+
+  geom_histogram()+
+  coord_cartesian(ylim = c(0,5000))+
   theme_bw()
+
+filter(flights, distance > 3000)%>%
+  arrange(distance)
+
+ggplot(flights, aes(arr_time))+
+  geom_histogram(bindwidth = 50)+
+  theme_bw()
+
+flights%>%
+  group_by(origin)%>%
+  summarise(
+    mean_delay = mean(arr_delay, na.rm = T),
+    median_delay = median(arr_delay, na.rm = T)
+  )
 ```
