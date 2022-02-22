@@ -1,0 +1,31 @@
+---
+title: "Assignment 2"
+author: "Geraldo B. Padilla F."
+date: "22-02-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(fig.width = 8, fig.height = 8, results = 'hold', fig.align = 'center')
+knitr::opts_chunk$set(fig.width = 8, fig.height = 8)
+```
+
+
+```{r packages, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(fivethirtyeight)
+theme_set(theme_bw(base_size = 14))
+d1 = data.frame(college_recent_grads)
+```
+
+# Question 1
+## Which majors are the most popular?
+
+```{r}
+d1%>%
+  arrange(desc(total))%>%
+  select(major, total)
+summary(d1$total)
+```
+

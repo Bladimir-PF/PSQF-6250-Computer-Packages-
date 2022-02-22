@@ -62,7 +62,7 @@ The next step in our analysis is to explore some correlations in the data set. F
 
 ######## Question 9
 
-```{r plotsepal, echo=FALSE, fig.cap = 'Association between length and width of Sepals'}
+```{r plotsepal, echo=FALSE, fig.cap = 'Association between length and width of Sepals', fig.alt = ' Graph 1'}
 plot(iris$Sepal.Length, iris$Sepal.Width)
 ```
 
