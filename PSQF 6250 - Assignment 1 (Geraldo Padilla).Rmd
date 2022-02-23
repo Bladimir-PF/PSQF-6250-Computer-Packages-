@@ -74,4 +74,3 @@ y <- runif(100, min = 3, max = 8)
 mean(x)
 mean(y)
 ```
-

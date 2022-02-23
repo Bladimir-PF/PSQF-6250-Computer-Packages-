@@ -351,9 +351,6 @@ p3 = ggplot(drop_na(penguins, sex), aes(sex, body_mass_g))+
   ylab('Boddy mass')+
   theme(legend.position = 'none', axis.title=element_text(size=10,face="bold"),
         axis.text=element_text(size=6))
-
-
-
 p1+p2
 p1/p2
 p3|(p1/p2)
@@ -607,6 +604,17 @@ flights%>%
   mutate(miss_arrival = is.na(arr_time))%>%
   ggplot(aes(sched_arr_time, ..density..))+
   geom_freqpoly(aes(color = miss_arrival))+
+  theme_bw()
+
+flights%>%
+  mutate(miss_arrival = is.na(arr_time))%>%
+  select(miss_arrival)%>%
+  summary()
+
+flights%>%
+  filter(is.na(arr_time))%>%
+  ggplot(aes(sched_arr_time, ..density..))+
+  geom_freqpoly()+
   theme_bw()
 
 sum(is.na(flights$dep_time))
