@@ -1,0 +1,76 @@
+---
+title: "PSQF 6250 - Assignment 1"
+author: "Geraldo B. Padilla F."
+date: "04-02-2022"
+output: html_document
+---
+
+# Question 1
+
+## **Research interests**:
+
+- Multilevel modeling
+- Computational analysis
+- Quantitative methodologies
+- Generalized linear models
+
+### Hiperlinks to main R project website
+
+Information about R project can be found here: <https://www.r-project.org/>. Or directly by clicking [here](https://www.r-project.org/).
+
+#### Question 4
+```{r summ_iris}
+summary(iris)
+```
+
+##### Question 5
+
+| Descriptives | Sepal.Length | Sepal.Width | Petal.Length | Petal.Width|
+| :---: | :---: | :---: | :---: | :---: | :---:|
+| Min. | 4.3 | 2.0 | 1.0 | 0.1 |
+| Median | 5.8 | 3.0 | 4.4 |  1.3|
+| Max. | 7.9 | 4.4 | 6.9 | 2.5 |
+
+###### Question 6
+
+```{r histsepal, echo=FALSE}
+hist(iris$Sepal.Length)
+```
+
+####### Questions 7
+
+My favorite vacation spots:
+
+1. Bogota, Colombia:
+   + Visit the historical center
+   + Coffee on the street
+   + Climb the Monserrate by cable car
+   
+2. Barcelona, Spain:
+   * Visit the Plaza de Cataluña in front of the Sagrada Familia
+   * Stroll along the Ramblas
+   * Visit Gaudí Park
+   
+3. Paris, France:
+   + Visit the Eiffel Tower
+   + Spending time at the Louvre museum
+   + Walking along the Senna river
+
+######## Question 8
+
+The next step in our analysis is to explore some correlations in the data set. First, the relationship between the length and width of the sepals, which is slightly negative with a magnitude of `r round(cor(iris$Sepal.Length, iris$Sepal.Width),2)`. On the other hand, between the length and width of the petals there is a strong  positive correlation ( r = `r round(cor(iris$Petal.Length, iris$Petal.Width), 2)`).
+
+######## Question 9
+
+```{r plotsepal, echo=FALSE, fig.cap = 'Association between length and width of Sepals', fig.alt = ' Graph 1'}
+plot(iris$Sepal.Length, iris$Sepal.Width)
+```
+
+######### Question 10
+
+```{r descriptives, eval=FALSE}
+x <- rnorm(100)
+y <- runif(100, min = 3, max = 8)
+mean(x)
+mean(y)
+```

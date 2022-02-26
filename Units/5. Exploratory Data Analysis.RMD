@@ -1,0 +1,209 @@
+---
+title: "Exploratory Data Analysis"
+author: "Geraldo B. Padilla F."
+date: "25-02-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Week 5 Exploratory Data Analysis
+
+```{r, message=FALSE}
+library(nycflights13)
+library(tidyverse)
+```
+
+## Missing data
+
+```{r}
+flights
+summary(flights)
+filter(flights, is.na(dep_time))
+filter(flights, is.na(arr_delay) & !is.na(arr_time))
+
+flights%>%
+  mutate(miss_arrival = is.na(arr_time))%>%
+  ggplot(aes(sched_arr_time, ..density..))+
+  geom_freqpoly(aes(color = miss_arrival))+
+  theme_bw()
+
+flights%>%
+  mutate(miss_arrival = is.na(arr_time))%>%
+  select(miss_arrival)%>%
+  summary()
+
+flights%>%
+  filter(is.na(arr_time))%>%
+  ggplot(aes(sched_arr_time, ..density..))+
+  geom_freqpoly()+
+  theme_bw()
+
+sum(is.na(flights$dep_time))
+```
+
+## Variation
+
+```{r}
+#Qualitative variables
+
+count(flights, month, day)
+
+ggplot(flights, aes(as.factor(month)))+
+  geom_bar()+
+  theme_bw()
+
+ggplot(flights, aes(cut_width(month, 1)))+
+  geom_bar()+
+  theme_bw()
+
+ggplot(flights, aes(month))+
+  geom_bar()+
+  scale_x_continuous(n.breaks = 11)
+  theme_bw()
+  
+ggplot(flights, aes(month))+
+  geom_bar()+
+  scale_x_continuous(breaks = 11)
+  theme_bw()
+
+#Quantitative variables
+ggplot(flights, aes(distance))+
+  geom_histogram(bandwith = 30)+
+  theme_bw()
+
+ggplot(flights, aes(distance))+
+  geom_freqpoly(aes(color = as.factor(month)))+
+  theme_bw()
+
+ggplot(flights, aes(distance))+
+  geom_density(aes(color = as.factor(month)))+
+  theme_bw()
+
+ggplot(flights, aes(distance))+
+  geom_histogram(bandwith = 100)+
+  theme_bw()
+
+flights%>%
+  count(month, cut_width(distance, 100))
+
+flights%>%
+  summarize(
+    var = var(distance, na.rm = TRUE), # NAs truncate the process
+    sd = sd(distance, na.rm = TRUE),
+    min = min(distance, na.rm = T),
+    max = max(distance, na.rm = T))
+```
+
+## Covariation: there are patterns between variables and they arnt constant across values of each one
+
+```{r}
+flights%>%
+  select(day, month)%>%
+  summary()
+
+#Qualitative variables
+ggplot(flights, aes(origin, carrier))+
+  geom_count()+
+  theme_bw()
+
+flights%>%
+  count(origin, carrier)%>%
+  ggplot(aes(origin, carrier))+
+  geom_tile(aes(fill = n))+
+  theme_bw()
+
+flights%>%
+  count(origin, carrier)%>%
+  ggplot(aes(origin, carrier))+
+  geom_tile(aes(fill = n))+
+  theme_bw()
+
+#Quantitative variables
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_point(alpha = .05)+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_boxplot(aes(group = cut_width(air_time, 50)))+
+  theme_bw() 
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_hex()+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_bin2d()+
+  theme_bw()
+```
+
+### Adding a third variable
+
+```{r}
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_hex()+
+  facet_grid(.~ origin)+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_point(aes(color = origin))+
+  theme_bw()
+
+ggplot(flights, aes(air_time, arr_delay))+
+  geom_hex()+
+  theme_bw()+
+  facet_wrap(.~ cut_width(dep_time, 250))
+```
+
+### Correlation
+
+```{r}
+flights%>%
+  select(air_time, arr_delay, dep_time)%>%
+  cor(use = 'pairwise.complete.obs')
+
+library(GGally)
+flights%>%
+  select(air_time, arr_delay, dep_time)%>%
+  na.omit()%>%
+  sample_n(1000)%>%
+  ggpairs(upper = list(discrete = "count"),
+          lower = list(discrete = "facetbar"))
+
+ggplot(flights, aes(dep_delay, arr_delay))+
+  facet_grid(.~ origin)+
+  geom_point()
+
+ggplot(flights, aes(dep_delay, arr_delay))+
+  facet_wrap(.~ origin)+
+  geom_point()
+
+select(flights, dep_delay, arr_delay, dep_time)%>%
+  cor(use = 'pairwise.complete.obs')
+```
+
+## Rare/Common cases
+
+```{r}
+flights%>%
+  ggplot(aes(distance))+
+  geom_histogram()+
+  coord_cartesian(ylim = c(0,5000))+
+  theme_bw()
+
+filter(flights, distance > 3000)%>%
+  arrange(distance)
+
+ggplot(flights, aes(arr_time))+
+  geom_histogram(bindwidth = 50)+
+  theme_bw()
+
+flights%>%
+  group_by(origin)%>%
+  summarise(
+    mean_delay = mean(arr_delay, na.rm = T),
+    median_delay = median(arr_delay, na.rm = T)
+  )
+```

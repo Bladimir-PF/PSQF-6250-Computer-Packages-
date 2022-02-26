@@ -1,0 +1,134 @@
+---
+title: 'Week 2: ggplot'
+author: "Geraldo B. Padilla F."
+date: "25-02-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Week 2 ggplot2
+
+```{r}
+library(tidyverse)
+midwest = data.frame(midwest)
+attach(midwest)
+knitr::opts_chunk$set(fig.width = 6, fig.height = 6)
+```
+
+1.  Graphics
+
+```{r}
+ggplot(midwest)+
+  geom_point(aes(county, state))
+
+ggplot(midwest)+
+    geom_point(aes(popdensity, percollege), shape = 15)
+
+ggplot(data = midwest) + 
+  geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
+  theme_bw()
+```
+
+2.  Facets
+
+```{r}
+ggplot(data = midwest)+
+    geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
+    facet_grid(.~ state)
+
+ggplot(data = midwest)+
+    geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
+    facet_grid(state ~ .)
+
+ggplot(data = midwest)+
+    geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
+    facet_wrap(~ state)
+
+ggplot(data = midwest)+
+    geom_point(mapping = aes(x = popdensity, y = percollege, color = state))+
+    facet_grid(inmetro ~ state)
+
+# the dot means 'do not put anything on the rows'.
+```
+
+3.  Geoms
+
+```{r}
+ggplot(midwest)+
+    geom_smooth(aes(popdensity, percollege))
+
+ggplot(midwest, aes(popdensity, percollege))+
+  geom_point(aes(color = 'blue'))
+
+ggplot(midwest, aes(popdensity, percollege))+
+  geom_line(aes(linetype = state, color = state))+
+  theme_grey()
+
+ggplot()
+
+ggplot(midwest)+
+    geom_smooth(aes(popdensity, percollege, linetype = state), se = FALSE)
+```
+
+4.  Combining multiples Geoms
+
+```{r}
+ggplot(data = midwest)+
+    geom_smooth(mapping = aes(popdensity, percollege, linetype = 'solid', color = state), se = FALSE)+
+    geom_point(mapping = aes(popdensity, percollege, color = state))
+
+ggplot(midwest, aes(x=popdensity, y=percollege, color = state))+
+    geom_point()+
+    geom_smooth(se = FALSE, linetype = 'dashed')
+
+ggplot(midwest, aes(x=popdensity, y=percollege))+
+    geom_point(aes(color = state))+
+    geom_smooth(se = FALSE)
+```
+
+5.  Geoms for single variables
+
+```{r}
+ggplot(midwest, aes(state))+
+    geom_bar()
+
+ggplot(midwest, aes(state))+
+    geom_bar(aes(fill = factor(inmetro)))
+
+ggplot(midwest, aes(state))+
+    geom_bar(aes(fill = factor(inmetro)), position = 'fill')
+
+prop.table(table(state, factor(inmetro)), 1)
+
+ggplot(data = midwest, mapping = aes(x = state)) + 
+  geom_bar(aes(fill = factor(inmetro)), position = 'dodge')
+
+ggplot(midwest, aes(popdensity))+
+  geom_histogram(binwidth = 1000)
+
+ggplot(midwest, aes(popdensity))+
+  geom_density(aes(color=state))
+
+ggplot(midwest, aes(state, popdensity))+
+  geom_boxplot(aes(color = state))+
+  facet_grid(.~factor(inmetro))
+
+ggplot(data = midwest, mapping = aes(x = popdensity, y = percollege, color = state)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  scale_x_continuous("Population Density") + 
+  scale_y_continuous("Percent College Graduates") + 
+  scale_color_discrete("State") + 
+  coord_cartesian(xlim = c(0, 15000))
+
+ggplot(midwest, aes(popdensity, percollege, color = state))+
+  geom_point()+
+  geom_smooth(se = FALSE)+
+  scale_x_continuous('Pop Dens', limits = c(0, 5000))+
+  scale_y_continuous('Percollege')+
+  scale_color_discrete('State')+
+  theme_bw()
+```
