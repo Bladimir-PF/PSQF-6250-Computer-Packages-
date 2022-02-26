@@ -13,10 +13,127 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
-library(readr)
+library(readxl)
 ```
 
 ```{r}
-d1<- data.frame(read_csv('Data/ufo.csv'))
+ufo <- read_csv('Data/ufo.csv', skip = 1, col_names = c(
+  'Date/Time', 'City', 'State', 'Shape' , 'Duration', 'Summary', 'Posted'))
+
+ufo <- read_csv('Data/ufo.csv', col_types = c(
+                'Date/Time' = col_character(), 
+                City = col_character(),
+                State =col_character(),
+                Shape =col_character(),
+                Duration = col_character(),
+                Summary = col_character(),
+                Posted = col_character()))
+ufo <- read_csv('Data/ufo.csv', col_types = c('ccccccc'))
+
+ufo <- read_csv('Data/ufo.csv',
+                col_types = list(
+                  'Date / Time' = col_datetime(format = '%m/%d/%y %H:%M'),
+                  City = col_character(),
+                  State = col_character(),
+                  Shape = col_character(),
+                  Duration = col_character(),
+                  Summary = col_character(),
+                  Posted = col_character()
+                  ))
+
+lotr <- read_tsv('Data/lotr_clean.tsv')
+edu <- read_excel('Data/EDU01.xls', sheet = 2)
+
+ufo_count <- ufo%>%
+  group_by(State)%>%
+  mutate(num_state = n())
+write_csv(ufo_count, path = 'Data/newfile.csv')
 ```
 
+# Data reestructuring
+```{r}
+long_data <- read_csv('Data/LongitudinalEX.csv')
+long_data
+extra_long <- long_data%>%
+  pivot_longer(agegrp:age.c, names_to = 'variable', values_to = 'value')%>%
+  unite(var_wave, variable, wave)
+extra_long
+
+wide <- extra_long%>%
+  pivot_wider(names_from = var_wave, values_from = value)
+wide
+
+wide%>%
+  pivot_longer(-id, names_to = 'variable', values_to = 'value')%>%
+  separate(variable, into = c('variable', 'wave'), sep = '_')%>%
+  arrange(id, wave)%>%
+  pivot_wider(names_from = variable, values_from = value)
+wide
+
+set.seed(10)
+messy <- data.frame(
+  id = 1:4,
+  trt = sample(rep(c('control', 'treatment'), each = 2)),
+  work_T1 = runif(4),
+  home_T1 = runif(4),
+  work_T2 = runif(4),
+  home_T2 = runif(4)
+)
+
+a <- messy%>%
+  pivot_longer(work_T1:home_T2, names_to = 'variable', values_to = 'value')%>%
+  separate(variable, into = c('var', 'wave'), sep = '_')
+a
+
+a%>%
+  unite(var_wave, var, wave)%>%
+  pivot_wider(names_from = var_wave, values_from = value)
+  
+```
+
+# Joining data
+```{r}
+library(Lahman)
+```
+
+```{r}
+team_salary <- inner_join(Teams, Salaries, by = c("yearID", "teamID", "lgID")) #it only includes the information that matches all the criteria
+
+team_salary%>%
+  group_by(yearID, teamID)%>%
+  summarise(mean_salary = mean(salary, na.rm = T))%>%
+  ggplot(aes(yearID, mean_salary))+
+  geom_line(size = 1)+
+  facet_wrap(~ teamID)
+
+team_salary <- left_join(Teams, Salaries) #all the rows in the left table will be preserved
+right_join(Teams, Salaries) #the principal table will be the second
+team_salary <- full_join(Teams, Salaries) #all data will be included (NAs will be included)
+
+top_salary_15 <- team_salary%>%
+  group_by(yearID, teamID)%>%
+  summarise(salary_y = mean(salary, na.rm = T))%>%
+  filter(yearID == 2015)%>%
+  arrange(desc(salary_y))%>%
+  head(.,5)
+top_salary_15
+
+team_salary%>%
+  semi_join(top_salary_15)
+
+team_salary%>%
+  anti_join(top_salary_15)
+
+managers_team <- inner_join(Managers, Teams, by = c("yearID", "teamID", "lgID", "G", "W", "L"))
+team_managers <- left_join(Teams, managers_team)
+
+
+view(Managers)
+view(Teams)
+```
+
+Using the Teams and Managers data, join the two tables and only keep the matching observations in both tables.
+
+Note, you may need to specify the column names directly you wish to join by. What happens to the columns that have the same names but are not keys?
+
+Using the same data tables from #1, add all the Managers variables to the Teams data while retaining all the rows for the Teams data.
