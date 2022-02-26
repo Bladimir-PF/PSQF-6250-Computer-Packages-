@@ -475,6 +475,7 @@ b = a%>%
          rank = min_rank(price_per_carat))%>%
   arrange(rank)%>%
   select(price, rank)
+
 c = a%>%
   mutate(rank = min_rank(price))%>%
   arrange(rank)%>%

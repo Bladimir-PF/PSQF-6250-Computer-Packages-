@@ -54,7 +54,7 @@ knitr::kable(
 
 # Question 3
 Explore the distribution of the variable/attribute sharewomen visually. Summarize characteristics of this variable in a few sentences. Be sure to include any figure(s) or statistics as evidence to support your description.
-```{r max.min.majors, include=FALSE}
+```{r max.min.majors}
 summary(d1$sharewomen)
 
 d1%>%
@@ -73,8 +73,8 @@ On average, the majors have 52.2% female graduates (`sharewomen`). The Military 
 
 Graph 1 shows the density distribution of this variable. As can be seen, most majors have approximately 30% to 75% female graduates. The distribution is slightly skewed to the left (negative skewness).
 
-```{r, women.density}
-ggplot(d1, aes(sharewomen))+
+```{r, eval=FALSE}
+ggplot(d1, aes(x = sharewomen, y= ..density..))+
   geom_density(fill = 'ivory')+
   scale_x_continuous('Proportion women')+
   scale_y_continuous('Density')+
@@ -129,7 +129,37 @@ knitr::kable(
 As can be inferred, the most disproportionate Major categories are Health and Engineering.
 
 # Question 5
-Create a figure that effectively shows which major categories are the most unisex and disproportionate in a single figure. Discuss briefly why this figure is effective at answering research question 2 and 3. 1 pt
+Create a figure that effectively shows which major categories are the most unisex and disproportionate in a single figure. Discuss briefly why this figure is effective at answering research question 2 and 3.
+
+```{r, eval=FALSE}
+#d1%>%
+  group_by(major_category)%>%
+  drop_na(total, men, women)%>%
+  summarise(
+    tot_grads = sum(total),
+    tot_women = sum(women),
+    tot_men = sum(men),
+    prop_women = (tot_women/tot_grads),
+    prop_men = (tot_men/tot_grads),
+    perc = (prop_men+prop_women))%>%
+  arrange(desc(prop_women))%>%
+  select(major_category, prop_women, prop_men, perc)%>%
+  filter(prop_women > .663)
+
+d1%>%
+  group_by(major_category)%>%
+  summarise(
+    tot_grads = sum(total),
+    tot_women = sum(women),
+    tot_men = sum(men),
+    prop_women = tot_women/tot_grads,)%>%
+  arrange(desc(prop_women))%>%
+  top_n(5)%>%
+  ggplot(., aes(major_category, prop_women))+
+  geom_bar(stat = 'identity')+
+  theme_bw()
+```
+
 
 # Question 6
 Create a figure that explores if there is a relationship between the popularity of a major and the unemployment rate. Discuss briefly how you defined popularity and why this figure helps to show the relationship between the two attributes. Be sure in your discussion to also state your interpretation of the figure. 1 pt
@@ -138,10 +168,58 @@ Create a figure that explores if there is a relationship between the popularity 
 Building off of #6, create a figure that explores if there is a relationship between the popularity of a major and the median salary (shown with the median attribute). Discuss how you defined popularity and why this figure helps to show the relationship between the two attributes. Be sure in your discussion to also state your interpretation of the figure. 1 pt
 
 # Question8
-Create a figure that explores if there is a relationship between the popularity of a major category and the unemployment rate. Discuss why this figure helps to show the relationship between the two attributes and also discuss how this figure may differ from the one created in #6. What additional features did you need to consider to make an effective visualization of this relationship given the data structure. Be sure in your discussion to also state your interpretation of the figure. Note, you may wish to use dplyr and ggplot2 to help with this question. 1 pt
+Create a figure that explores if there is a relationship between the popularity of a major category and the unemployment rate.
+Discuss why this figure helps to show the relationship between the two attributes and also discuss how this figure may differ from the one created in #6.
+What additional features did you need to consider to make an effective visualization of this relationship given the data structure.
+Be sure in your discussion to also state your interpretation of the figure. Note, you may wish to use dplyr and ggplot2 to help with this question. 1 pt
 
 # Question 9
-Create a figure that explores if there is a relationship between the popularity of a major category and the median salary (shown with the median attribute). Discuss why this figure helps to show the relationship between the two attributes and also discuss how this figure may differ from the one created in #6. What additional features did you need to consider to make an effective visualization of this relationship given the data structure. Be sure in your discussion to also state your interpretation of the figure. Note, you may wish to use dplyr and ggplot2 to help with this question. 1 pt
+Create a figure that explores if there is a relationship between the popularity of a major category and the median salary (shown with the median attribute).
+
+Discuss why this figure helps to show the relationship between the two attributes and also discuss how this figure may differ from the one created in #6.
+
+What additional features did you need to consider to make an effective visualization of this relationship given the data structure.
+
+Be sure in your discussion to also state your interpretation of the figure. Note, you may wish to use dplyr and ggplot2 to help with this question.
+
+```{r}
+d1%>%
+  group_by(major_category)%>%
+  summarise(
+    salary_md = median(sum(median)),
+    pop_major = sum(total)
+  )
+
+
+```
+
 
 # Question 10
 Identify a new research question from the college_recent_grads that interests you. State this research question, then create a figure that highlights/explores the research question. Discuss briefly why this figure does a good job of exploring the research question. What challenges did you have creating the figure? 1 pt
+
+
+ggplot(d2, aes(major_category, perc))+
+  geom_bar(stat = 'identity', aes(fill = prop_women))+
+  theme_bw()
+
+d3 = c(d2$prop_women, d2$prop_men)
+d3 <- data.frame(d3)
+d4 <- cbind(d3, d2$major_category)
+colnames(d4) <- c('prop', 'major_cat')
+arrange(d4, major_cat)
+
+ggplot(d4, aes(major_cat))+
+         
+
+d1%>%
+  group_by(major_category)%>%
+  summarise(
+    tot_grads = sum(total),
+    tot_women = sum(women),
+    tot_men = sum(men),
+    prop_women = tot_women/tot_grads,)%>%
+  arrange(desc(prop_women))%>%
+  top_n(5)%>%
+  ggplot(., aes(major_category, prop_women))+
+  geom_bar(stat = 'identity', position = 'fill')+
+  theme_bw()
