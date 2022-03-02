@@ -1,0 +1,143 @@
+---
+title: "Factors"
+author: "Geraldo B. Padilla F."
+date: "02-03-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Factor variables in R
+
+```{r libraries}
+library(tidyverse)
+library(forcats)
+library(fivethirtyeight)
+```
+
+## Use for factors
+```{r}
+resp <- c('Disagree', 'Agree', 'Neutral')
+sort(resp) # it does not consider order than the natural one (numbers or letters)
+
+scale_levels <- c('Strongly Agree', 'Agree', 'Neutral', 'Disagree', 'Strongly Disagree')
+resp_fact <- factor(resp, levels = scale_levels) #what are all the possibles values this variable can take?
+resp_fact
+sort(resp_fact)
+
+factor(c('disagree', 'Agree', 'Strongly Agree'), levels = c('Disagree', 'Agree', 'Strongly Agree'))
+levels(resp_fact) #levels of the factor variable
+
+str(resp_fact)
+as.numeric(resp) #words do not have a numerical meaning
+as.numeric(resp_fact) #the order of the labels can be translated into numbers
+```
+
+## Common Factors Manipulation
+1. Reorder factor levels for plotting or table creation
+2. Change the levels of the factor
+
+### Reorder Factor Variables
+```{r}
+weather_check
+prop_check_weather <- weather_check%>%
+  group_by(region)%>%
+  summarise(prop = mean(ck_weather))
+prop_check_weather
+
+ggplot(prop_check_weather, aes(region, prop))+
+  geom_point()+
+  coord_flip()+
+  theme_bw()
+
+ggplot(
+  na.omit(prop_check_weather),
+  aes(prop, fct_reorder(region, desc(prop))))+
+  geom_point()+
+  theme_bw() #region does not have a natural order, thus we can define an order based on prop.
+
+weather_check%>%
+  group_by(hhold_income)%>%
+  summarise(prop = mean(ck_weather))%>%
+  na.omit()%>%
+  ggplot(., aes(
+    prop, fct_reorder(hhold_income, prop)))+
+  geom_point()+
+  theme_bw() #this is not a good practice because the categorical variable has a natural order.
+
+#flying$recline_eliminate <- as.numeric(flying$recline_eliminate)
+flying%>%
+  na.omit()%>%
+  group_by(location)%>%
+  summarise(prop = mean(as.numeric(recline_eliminate)))%>%
+  ggplot(., aes(prop, fct_reorder(location, prop)))+
+           geom_point()+
+           theme_bw()
+```
+
+### Rename Factors
+
+```{r}
+levels(weather_check$age)
+table(weather_check$age)
+
+weather_check%>%
+  mutate(
+    age_recode = fct_recode(age,
+                            '18 to 29' = "18 - 29", #the original names have to be the same
+                            '30 to 44' = "30 - 44", 
+                            '45 to 59' = "45 - 59"))%>%
+  count(age_recode) #the same category remains the same
+
+levels(weather_check$ck_weather_watch)
+
+weather_check%>%
+  mutate(watch_recode = fct_recode(ck_weather_watch,
+    'Unlikely' = "Very unlikely",
+    'Unlikely' = "Somewhat unlikely",
+    'Likely'= "Somewhat likely",
+    'Likely'= "Very likely"))%>%
+  count(watch_recode)
+
+weather_check%>%
+  mutate(region = fct_lump(region, n = 5))%>% #n specifies the number of unique categories. The rest will be lumped into a Other category
+  count(region, sort = T)#sort is an alternative to arrange from dplyer
+
+table(as.numeric(flying$children_under_18))
+table(flying$baby)
+
+flying%>%
+  na.omit()%>%
+  mutate(baby_rude = fct_recode(baby, 
+                                'Yes' = 'Very',
+                                'Yes' = 'Somewhat',
+                                'No' = 'No'))%>%
+  filter(children_under_18 == TRUE)%>%
+  group_by(children_under_18)%>%
+  count(children_under_18,baby_rude)%>%
+  mutate(prop = n/sum(n))
+```
+
+## Working with Character Strings
+```{r}
+library(stringr)
+library(tidyverse)
+```
+
+```{r}
+string <- c('Iowa City', 'Cedar Rapids', 'Des Moines', 'IA')
+str_length(string) #how long text attributes are?
+
+str_c('Iowa City', 'Cedar Rapids', 'Des Moines', 'IA')
+str_c(c('Iowa City', 'Cedar Rapids', 'Des Moines'), 'IA') #it pastes the last label to each of the concatenated labels
+str_c(c('Iowa City', 'Cedar Rapids', 'Des Moines'), 'IA', sep = ',')
+str_c(c('Iowa City', 'Cedar Rapids', 'Des Moines'), collapse = ', ')
+#this is useful to combine multiple columns in the data (labels)
+
+str_sub(c('Iowa City', 'Cedar Rapids', 'Des Moines'), 1, 5) #it is useful for subsetting strings by location. Numbers represents: take from this up to this.
+str_sub(c('Iowa City', 'Cedar Rapids', 'Des Moines'), -6, -1)
+```
+
+## Introduction to Regular Expressions

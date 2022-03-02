@@ -65,10 +65,9 @@ ggplot(flights, aes(month))+
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Sep', 'Aug', 'Oct', 'Nov', 'Dec'))+
   theme_bw()
   
-ggplot(flights, aes(month))+
-  geom_bar()+
-  scale_x_continuous(breaks = waiver())
-  theme_bw()
+flights%>%
+  count(month, day)%>%
+  arrange(n)
 
 #Quantitative variables
 ggplot(flights, aes(distance))+
