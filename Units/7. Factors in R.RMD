@@ -141,3 +141,31 @@ str_sub(c('Iowa City', 'Cedar Rapids', 'Des Moines'), -6, -1)
 ```
 
 ## Introduction to Regular Expressions
+
+```{r}
+x <- c('Iowa City', 'Cedar Rapids', 'Des Moines')
+str_view(x, 'City')
+str_view(x, regex('city', ignore_case = T))#it looks for the word regardless of the lower or upper case
+
+x <- c('Iowa City', 'Des Moines, Iowa')
+str_view(x, '^Iowa')
+str_view(x, 'Iowa$')
+
+#? 0 or 1 match
+#+ 1 or more
+#* 0 or more
+sounds <- c('baaaa', 'ssss', 'moo', 'buzz', 'purr')
+str_view(sounds, 'a?')
+str_view(sounds, 'a+')
+str_view(sounds, 'rrr*')
+str_view(sounds, 'rrr+')
+
+str_view(sounds, 'r{2}')
+#{n, } match n or more
+#{, m} match at most m
+#{n, m} match between n and m
+str_trim(sounds)
+string <- "\n\nString with trailing and leading white space\n\n"
+str_trim(string)
+```
+
