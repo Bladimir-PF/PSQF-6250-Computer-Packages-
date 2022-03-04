@@ -1,0 +1,118 @@
+---
+title: "Assignment 3"
+subtitle: 'Exploratory Data Analysis and Data Restructuring'
+author: "Geraldo B. Padilla F."
+date: "04-03-2022"
+output:
+  html_document:
+    theme: simplex
+    highlight: textmate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, include=FALSE}
+library(forcats)
+library(readr)
+library(tidyverse)
+```
+
+# First part: exploratory analysis using gss_cat
+
+__Research Questions__
+
+1. How is age related to the amount of television a person reports watching?
+
+1.1 Does there appear to be patterns in the missing data from the variable `tvhours` by different income and age levels?
+
+```{r}
+attach(gss_cat)
+dim(gss_cat)
+
+select(gss_cat, age, tvhours)%>%
+  summary()
+
+gss_cat%>%
+  mutate(miss_tv = is.na(tvhours))%>%
+  ggplot(., aes(age, ..density..))+
+  geom_freqpoly(aes(color = miss_tv))+
+  theme_bw()
+
+gss_cat%>%
+  group_by(rincome)%>%
+  mutate(miss_tv = sum(is.na(tvhours)))%>%
+  ggplot(., aes(miss_tv, rincome))+
+  geom_point()+
+  theme_bw()
+
+filter(gss_cat, rincome == 'Not applicable'| rincome == "$25000 or more")%>%
+  summarise(miss_tv = sum(is.na(tvhours)))
+```
+
+1.2 Does age appear to be related to the amount of time a person spends watching television?
+
+```{r}
+ggplot(gss_cat, aes(age, tvhours))+
+  geom_boxplot(aes(group = cut_width(age, 10)))+
+  theme_bw()
+
+ggplot(gss_cat, aes(age, tvhours))+
+  geom_point()+
+  theme_bw()
+
+gss_cat%>%
+  na.omit()%>%
+  mutate(age_cat = cut_width(age, 10))%>%
+  group_by(age_cat)%>%
+  summarise(tv_hours = sum(tvhours, na.rm = T))%>%
+  ggplot(., aes(tv_hours, age_cat))+
+  geom_bar(stat = 'identity', fill="#f68060", alpha=.6, width=.4)+
+  scale_y_discrete(limits=rev)+
+  theme_bw()
+```
+
+1. Description of data
+```{r data, include=FALSE}
+d1 <- data.frame(read_csv('https://raw.githubusercontent.com/lebebr01/psqf-6250-blogdown/main/data/ECLS_6250.csv'))
+?gss_cat
+```
+
+
+```{r data}
+head(d1, 10)
+dim(d1)
+```
+
+2. Verify that the data that are indeed missing are read in as missing values. Use the “ECLS_6250.pdf” codebook (found on the course website) to confirm values of missing data for each variable, these are listed for each variable directly in the codebook.
+
+Compute the mean of the following two variables: “C4R4MSCL” and “W3SESL”. 1 pt
+
+3. Using the tidyr package, convert this data into an extra long format where the variables CHILDID, KURBAN_R, GENDER, and RACE are the id variables. The other data attributes would all represent data values to be restructured.
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 6 columns when you are done with this step. 1 pt
+
+4. Using the restructured data from #3 above, create three new variables that represent the type of variable (S = School, C = Child, W = family), the wave number, and remaining information. The type of variable and the wave number are the first and second characters of the variable names that were restructured (i.e. stacked) in #3. Hint, using the separate() function would be useful for this step and exploring some random rows of the data may be helpful using head() or tail() or sample_n().
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 8 columns when you are done with this step. 1 pt
+
+5. Using the restructured data from #4, combine the variable type (i.e., the attribute that is either S, C, or W) and left-over names. This new variable should be similar to the original variable names from when reading in the data from #1, but should not include the wave information in it. Hint, the unite() function should be helpful for this step.
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 7 columns when you are done with this step. 1 pt
+
+6. Finally, using the restructured data from #5, widen the data set to create a variable for each unique value from the newly created variable from #5.
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 9 columns and fewer rows than #5 when you are done with this step. 1 pt
+
+7. Read in the “ECLS_6250_school.csv” data file found on the course website. Using the restructured data created in #6, merge the school data imported in question #7 into the child level data. Use the type of join where the number of rows for the child level data are not changed. More specifically, the final data should have the same number of rows as #6, but will add 5 new columns.
+
+Using the head() function, print the first few rows of the merged data and using the dim() function, print out the dimensions of the merged data. 1 pt
+
+8. This question has a number of steps which are highlighted below in more detail.
+
+Identify the 25 schools at wave 1 that have the highest proportion of female students and create a new data file that has has the school ID and proportion of female students in the school. Note: Use the codebook to identify which code represents males and females. It may also be helpful, although not necessary, to create a new variable for gender.
+
+Perform a filtering join that returns only the rows from the child level data (i.e., the final data from #7) at wave 1 that belong to the 25 schools that had the highest proportion of females at wave 1 (from step one of this question).
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. 1 pt
