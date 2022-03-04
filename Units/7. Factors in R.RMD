@@ -169,3 +169,63 @@ string <- "\n\nString with trailing and leading white space\n\n"
 str_trim(string)
 ```
 
+## Regular Expression Functions
+
+```{r}
+x<- c('Iowa City, Iowa', 'Cedar Rapids, IA', 'Des Moines, Iowa', 'Waterloo, IA', 'Rochester, Minnesota')
+
+str_detect(x, 'Iowa$') #Dollar signs stands for matching the character at the end of the strings
+str_detect(x, 'Iowa$|IA$')
+mean(str_detect(x, 'Iowa$|IA$'))
+
+str_count(x, 'Iowa$|IA$')
+
+str_replace(x, 'Iowa$', 'IA')
+str_replace(x, 'Iowa', 'IA')
+str_replace_all(x, 'Iowa', 'IA')
+
+str_extract(x, 'Minnesota')
+str_extract(x, '^.*,') #At the start of the string (^) match any character (.) multiples times (*), followed by a comma(,).
+
+str_split(x, ', ', simplify = T)
+```
+
+## Real-World Example
+
+```{r}
+library(readr)
+library(lubridate)
+```
+
+
+```{r}
+ufo <- read_csv('Data/ufo.csv')
+
+time <- str_split(ufo$Duration, ' ', simplify = T); time
+time <- data.frame(time)
+time <- select(time, X1, X2)
+colnames(time) <- c('time', 'unit')
+cbind(ufo, time)
+
+ufo %>%
+  mutate(
+    num_colors = str_count(Summary, 'white|green|red|blue|orange|purple|yellow')
+  )
+
+ufo <- ufo %>%
+  mutate(converted_date = mdy_hm(`Date / Time`))
+
+ufo %>%
+  mutate(
+    year = year(converted_date),
+    month = month(converted_date),
+    day = day(converted_date),
+    hour = hour(converted_date),
+    minute = minute(converted_date),
+    month_label_abbr = month(converted_date, label = TRUE),
+    wday_abbr = wday(converted_date, label = TRUE),
+    month_label = month(converted_date, label = TRUE, abbr = FALSE),
+    wday = wday(converted_date, label = TRUE, abbr = FALSE)
+  )
+```
+
