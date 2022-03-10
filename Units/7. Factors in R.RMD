@@ -20,14 +20,14 @@ library(fivethirtyeight)
 ## Use for factors
 ```{r}
 resp <- c('Disagree', 'Agree', 'Neutral')
-sort(resp) # it does not consider order than the natural one (numbers or letters)
+sort(resp) # it does not consider any other order than the natural one (numbers or letters)
 
 scale_levels <- c('Strongly Agree', 'Agree', 'Neutral', 'Disagree', 'Strongly Disagree')
 resp_fact <- factor(resp, levels = scale_levels) #what are all the possibles values this variable can take?
 resp_fact
-sort(resp_fact)
+sort(resp_fact) #now the categories are sorted based on the factor levels
 
-factor(c('disagree', 'Agree', 'Strongly Agree'), levels = c('Disagree', 'Agree', 'Strongly Agree'))
+factor(c('disagree', 'Agree', 'Strongly Agree'), levels = scale_levels)
 levels(resp_fact) #levels of the factor variable
 
 str(resp_fact)
@@ -68,13 +68,22 @@ weather_check%>%
   theme_bw() #this is not a good practice because the categorical variable has a natural order.
 
 #flying$recline_eliminate <- as.numeric(flying$recline_eliminate)
+
+summary(flying$recline_eliminate)
+mean(flying$recline_eliminate, na.rm = T) #prop of respondents that believe the reclining the chair while flying should be eliminated
+
 flying%>%
   na.omit()%>%
   group_by(location)%>%
-  summarise(prop = mean(as.numeric(recline_eliminate)))%>%
+  summarise(prop = mean(recline_eliminate)) #Do these proportions differ by the location?
+
+flying%>%
+  na.omit()%>%
+  group_by(location)%>%
+  summarise(prop = mean(recline_eliminate))%>%
   ggplot(., aes(prop, fct_reorder(location, prop)))+
            geom_point()+
-           theme_bw()
+           theme_bw() #Create a graphic that captures this relationship
 ```
 
 ### Rename Factors
@@ -105,8 +114,8 @@ weather_check%>%
   mutate(region = fct_lump(region, n = 5))%>% #n specifies the number of unique categories. The rest will be lumped into a Other category
   count(region, sort = T)#sort is an alternative to arrange from dplyer
 
-table(as.numeric(flying$children_under_18))
-table(flying$baby)
+summary(flying$children_under_18)
+summary(flying$baby)
 
 flying%>%
   na.omit()%>%
@@ -114,9 +123,8 @@ flying%>%
                                 'Yes' = 'Very',
                                 'Yes' = 'Somewhat',
                                 'No' = 'No'))%>%
-  filter(children_under_18 == TRUE)%>%
   group_by(children_under_18)%>%
-  count(children_under_18,baby_rude)%>%
+  count(children_under_18, baby_rude)%>%
   mutate(prop = n/sum(n))
 ```
 
@@ -228,4 +236,3 @@ ufo %>%
     wday = wday(converted_date, label = TRUE, abbr = FALSE)
   )
 ```
-

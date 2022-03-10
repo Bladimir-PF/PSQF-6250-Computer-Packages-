@@ -153,7 +153,8 @@ share_women <- d1%>%drop_na()%>%select(major_category, men, women, total)%>%grou
 ```
 
 ```{r Q5}
-ggplot(share_women, aes(y = reorder(major_category, -Prop_female), x = Prop_female, xlim(0,1)))+
+ggplot(share_women,
+       aes(y = reorder(major_category, -Prop_female), x = Prop_female, xlim(0,1)))+
   geom_bar(stat ="identity")+
   scale_x_continuous(labels = scales::comma)+
   labs(x = "Proportion of Female in Major Category", y = "Major category", title = "Proportion of Females by Major Category ")+
