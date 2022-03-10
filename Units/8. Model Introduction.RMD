@@ -130,5 +130,6 @@ augment(m4)%>%
   geom_histogram(binwidth = 3, color = 'white')+
   theme_bw()
 
+glance(m4)
 ```
 
