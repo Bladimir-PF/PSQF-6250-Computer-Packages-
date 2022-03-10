@@ -1,0 +1,134 @@
+---
+title: "Linear Regression"
+author: "Geraldo B. Padilla F."
+date: "09-03-2022"
+output: html_document
+---
+
+# Model Introduction
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(broom)
+library(fivethirtyeight)
+```
+
+## Simple Linear Regression
+
+```{r}
+fandango
+attach(fandango)
+
+ggplot(fandango, aes(rottentomatoes, metacritic))+
+  geom_point(size = 3)+
+  theme_bw()
+
+ggplot(fandango, aes(rottentomatoes, metacritic))+
+  geom_point(size = 3)+
+  geom_smooth(se = F, size = 1, method = 'loess') #loess shows the trend in the data via local regressions at different points on the x axis.
+
+with(fandango, cor(rottentomatoes, metacritic))#look within this object for these variables
+```
+
+### Simple Linear Regression
+```{r}
+m1 <- lm(metacritic ~ rottentomatoes)
+summary(m1)
+
+tidy(m1)
+tidy(m1, conf.int = T)
+
+summary(imdb)
+ggplot(fandango, aes(imdb, metacritic))+
+  geom_point()+
+  geom_smooth(se = F, method = 'loess')+
+  theme_bw()
+with(fandango, cor(imdb, metacritic))
+
+m2 <- lm(metacritic ~ imdb)
+summary(m2)
+
+summary(fandango_ratingvalue)
+ggplot(fandango, aes(fandango_ratingvalue, metacritic))+
+  geom_point()+
+  geom_smooth(se = F, method = 'loess')+
+  theme_bw()
+with(fandango, cor(fandango_ratingvalue, metacritic))
+
+m3 <- lm(metacritic~fandango_ratingvalue)
+summary(m3)
+
+glance(m1, m2, m3)
+```
+
+## Working behind `lm` function
+
+```{r}
+model_matrix(fandango, metacritic ~ rottentomatoes)
+model_matrix(fandango, metacritic ~ rottentomatoes - 1)
+tidy(lm(metacritic~rottentomatoes - 1, data = fandango)) #it is not adjusting by the mean of y
+```
+
+## Single Categorical Predictor
+
+```{r}
+meta_rotten <- fandango%>%
+  select(film, year, rottentomatoes, metacritic)%>%
+  gather(group, rating, rottentomatoes, metacritic)#it stack the data
+meta_rotten
+
+m1 <- lm(rating ~ factor(group), data = meta_rotten)#it is the same that a t.test function
+summary(m1)
+
+meta_rotten%>%
+  arrange(film)
+
+meta_rotten%>%
+  arrange(film)%>%
+  model_matrix(rating~factor(group))#indicator dummy variable
+
+t.test(rating ~ factor(group), data = meta_rotten, var.equal = T)#it tests homogeneity of variance
+
+meta_rotten%>%
+  group_by(factor(group))%>%
+  summarise(mean_rating = mean(rating))
+```
+
+## Evaluating Model Fit
+
+```{r}
+summary(lm(rating ~ factor(group), data = meta_rotten))
+glance(lm(rating~factor(group), data = meta_rotten))
+
+diagnostic <- augment(lm(rating~factor(group), data = meta_rotten))
+diagnostic <- data.frame(diagnostic)
+diagnostic <- diagnostic%>%
+  mutate(.resid = (rating-.fitted))
+
+ggplot(diagnostic, aes(.resid))+
+  geom_histogram(binwidth = 5, color = 'white')+
+  theme_bw()
+
+ggplot(diagnostic, aes(.resid, factor.group.))+
+  geom_boxplot()+
+  geom_jitter(aes(color = factor.group.))+
+  theme_bw()
+
+meta_rotten%>%
+  add_residuals(lm(rating~factor(group), data = meta_rotten))%>%
+  ggplot(., aes(resid, rating))+
+  geom_point()+
+  theme_bw()
+
+m4 <- lm(metacritic ~ imdb, data = fandango)
+augment(m4)%>%
+  ggplot(., aes(.resid))+
+  geom_histogram(binwidth = 3, color = 'white')+
+  theme_bw()
+
+```
+

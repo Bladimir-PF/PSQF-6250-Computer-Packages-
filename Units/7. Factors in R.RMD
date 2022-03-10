@@ -131,7 +131,6 @@ flying%>%
 ## Working with Character Strings
 ```{r}
 library(stringr)
-library(tidyverse)
 ```
 
 ```{r}
@@ -153,6 +152,7 @@ str_sub(c('Iowa City', 'Cedar Rapids', 'Des Moines'), -6, -1)
 ```{r}
 x <- c('Iowa City', 'Cedar Rapids', 'Des Moines')
 str_view(x, 'City')
+str_view(x, 'city')
 str_view(x, regex('city', ignore_case = T))#it looks for the word regardless of the lower or upper case
 
 x <- c('Iowa City', 'Des Moines, Iowa')
@@ -162,16 +162,17 @@ str_view(x, 'Iowa$')
 #? 0 or 1 match
 #+ 1 or more
 #* 0 or more
-sounds <- c('baaaa', 'ssss', 'moo', 'buzz', 'purr')
-str_view(sounds, 'a?')
+sounds <- c('baaaa', 'ssss', 'moo', 'buzz', 'purr', 'baaa')
+str_view(sounds, 'aa?')
 str_view(sounds, 'a+')
-str_view(sounds, 'rrr*')
-str_view(sounds, 'rrr+')
+str_view(sounds, 'rrr+') #the mark applies only to the last character
 
 str_view(sounds, 'r{2}')
+#[n] match exactly n
 #{n, } match n or more
 #{, m} match at most m
 #{n, m} match between n and m
+
 str_trim(sounds)
 string <- "\n\nString with trailing and leading white space\n\n"
 str_trim(string)
@@ -187,15 +188,16 @@ str_detect(x, 'Iowa$|IA$')
 mean(str_detect(x, 'Iowa$|IA$'))
 
 str_count(x, 'Iowa$|IA$')
+str_count(x, 'Iowa|IA')
 
-str_replace(x, 'Iowa$', 'IA')
+str_replace(x, 'Iowa$', 'IA') #This function takes two arguments, first the text to be matched and second the text the match should be changed to.
 str_replace(x, 'Iowa', 'IA')
 str_replace_all(x, 'Iowa', 'IA')
 
 str_extract(x, 'Minnesota')
 str_extract(x, '^.*,') #At the start of the string (^) match any character (.) multiples times (*), followed by a comma(,).
 
-str_split(x, ', ', simplify = T)
+str_split(x, ', ', simplify = T)#The str_split function will remove the delimiter that it used to split on.
 ```
 
 ## Real-World Example
@@ -217,8 +219,9 @@ cbind(ufo, time)
 
 ufo %>%
   mutate(
-    num_colors = str_count(Summary, 'white|green|red|blue|orange|purple|yellow')
-  )
+    num_colors = str_count(Summary, 'white|green|red|blue|orange|purple|yellow'))
+
+head(ufo$`Date / Time`)
 
 ufo <- ufo %>%
   mutate(converted_date = mdy_hm(`Date / Time`))
