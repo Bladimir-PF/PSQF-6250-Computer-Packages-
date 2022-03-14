@@ -13,10 +13,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r libraries, include=FALSE}
+```{r libraries, include=FALSE, message=FALSE}
 library(forcats)
 library(readr)
 library(tidyverse)
+library(stringr)
 ```
 
 # First part: exploratory analysis using gss_cat
@@ -28,7 +29,8 @@ __Research Questions__
 1.1 Does there appear to be patterns in the missing data from the variable `tvhours` by different income and age levels?
 
 ```{r}
-attach(gss_cat)
+
+?gss_cat
 dim(gss_cat)
 
 select(gss_cat, age, tvhours)%>%
@@ -47,14 +49,25 @@ gss_cat%>%
   geom_point()+
   theme_bw()
 
+gss_cat%>%
+  group_by(rincome)%>%
+  filter(rincome !='Refused' &
+           rincome !='No answer' &
+           rincome !='Not applicable' &
+           rincome !="Don't know")%>%
+  mutate(miss_tv = sum(is.na(tvhours)))%>%
+  ggplot(., aes(miss_tv, rincome))+
+  geom_point()+
+  theme_bw()
 filter(gss_cat, rincome == 'Not applicable'| rincome == "$25000 or more")%>%
-  summarise(miss_tv = sum(is.na(tvhours)))
+  summarise(
+miss_tv = sum(is.na(tvhours)))
 ```
 
 1.2 Does age appear to be related to the amount of time a person spends watching television?
 
 ```{r}
-ggplot(gss_cat, aes(age, tvhours))+
+ggplot(na.omit(gss_cat), aes(age, tvhours))+
   geom_boxplot(aes(group = cut_width(age, 10)))+
   theme_bw()
 
@@ -73,39 +86,113 @@ gss_cat%>%
   theme_bw()
 ```
 
+# Second part
+
 1. Description of data
 ```{r data, include=FALSE}
-d1 <- data.frame(read_csv('https://raw.githubusercontent.com/lebebr01/psqf-6250-blogdown/main/data/ECLS_6250.csv'))
-?gss_cat
+d1 <- read_csv('https://raw.githubusercontent.com/lebebr01/psqf-6250-blogdown/main/data/ECLS_6250.csv')
+names(d1)
 ```
 
-
 ```{r data}
-head(d1, 10)
+head(d1)
 dim(d1)
 ```
 
 2. Verify that the data that are indeed missing are read in as missing values. Use the “ECLS_6250.pdf” codebook (found on the course website) to confirm values of missing data for each variable, these are listed for each variable directly in the codebook.
 
-Compute the mean of the following two variables: “C4R4MSCL” and “W3SESL”. 1 pt
+```{r}
+summary(d1)
+```
+
+The missing data is correctly included in the data set.
+
+Compute the mean of the following two variables: “C4R4MSCL” and “W3SESL”.
+
+```{r}
+d1%>%
+  summarize(
+    mean_C4R4MSCL = mean(C4R4MSCL,  na.rm= T),
+    mean_W3SESL = mean(W3SESL, na.rm = T))
+```
 
 3. Using the tidyr package, convert this data into an extra long format where the variables CHILDID, KURBAN_R, GENDER, and RACE are the id variables. The other data attributes would all represent data values to be restructured.
 
-Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 6 columns when you are done with this step. 1 pt
+```{r}
+d1_long <- d1%>%
+  mutate_all(as.character)%>%
+  pivot_longer(c(S1_ID, S2_ID, S3_ID, S4_ID, S5_ID, S6_ID, S7_ID,
+                 C1R4MSCL, C2R4MSCL, C3R4MSCL,  C4R4MSCL, C5R4MSCL, C6R4MSCL, C7R4MSCL,
+                 W1SESL, W3SESL, W5SESL, S2PUBLIC),
+               names_to = 'id_variable',
+               values_to = 'value')
+d1_long
+```
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 6 columns when you are done with this step.
+
+```{r}
+head(d1_long)
+dim(d1_long)
+```
 
 4. Using the restructured data from #3 above, create three new variables that represent the type of variable (S = School, C = Child, W = family), the wave number, and remaining information. The type of variable and the wave number are the first and second characters of the variable names that were restructured (i.e. stacked) in #3. Hint, using the separate() function would be useful for this step and exploring some random rows of the data may be helpful using head() or tail() or sample_n().
 
-Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 8 columns when you are done with this step. 1 pt
+```{r}
+d1_long_b <- d1_long%>%
+ separate(id_variable, into = c('var_type', 'wave', 'other_info'), sep = c(1,2,9))
+
+d1_long_b$other_info <- str_replace(d1_long_b$other_info, '_ID', 'ID')
+
+d1_long_b
+```
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 8 columns when you are done with this step.
+
+```{r}
+head(d1_long_b)
+dim(d1_long_b)
+```
 
 5. Using the restructured data from #4, combine the variable type (i.e., the attribute that is either S, C, or W) and left-over names. This new variable should be similar to the original variable names from when reading in the data from #1, but should not include the wave information in it. Hint, the unite() function should be helpful for this step.
 
-Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 7 columns when you are done with this step. 1 pt
+```{r}
+d1_long_c <- d1_long_b%>%
+  unite(ID, var_type, other_info)
+d1_long_c
+```
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 7 columns when you are done with this step.
+
+```{r}
+head(d1_long_c)
+dim(d1_long_c)
+```
 
 6. Finally, using the restructured data from #5, widen the data set to create a variable for each unique value from the newly created variable from #5.
 
-Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 9 columns and fewer rows than #5 when you are done with this step. 1 pt
+```{r}
+d1_long_d <- d1_long_c%>%
+  pivot_wider(names_from = ID, values_from = value)
+```
+
+Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 9 columns and fewer rows than #5 when you are done with this step.
+
+```{r}
+head(d1_long_d)
+dim(d1_long_d)
+```
 
 7. Read in the “ECLS_6250_school.csv” data file found on the course website. Using the restructured data created in #6, merge the school data imported in question #7 into the child level data. Use the type of join where the number of rows for the child level data are not changed. More specifically, the final data should have the same number of rows as #6, but will add 5 new columns.
+
+```{r}
+d2 <- read_csv('https://raw.githubusercontent.com/lebebr01/psqf-6250-blogdown/main/data/ECLS_6250_school.csv')
+```
+
+```{r}
+d3 <- left_join(d1_long_d, d2)
+```
+
 
 Using the head() function, print the first few rows of the merged data and using the dim() function, print out the dimensions of the merged data. 1 pt
 
@@ -116,3 +203,21 @@ Identify the 25 schools at wave 1 that have the highest proportion of female stu
 Perform a filtering join that returns only the rows from the child level data (i.e., the final data from #7) at wave 1 that belong to the 25 schools that had the highest proportion of females at wave 1 (from step one of this question).
 
 Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. 1 pt
+
+CODE TO REMOVE
+
+```{r}
+d2 <- d1 #copy of data
+d2$CHILDID <- gsub('C*','',d1$CHILDID) #transform CHILDID into numeric ID
+d2$CHILDID <- as.numeric(d2$CHILDID) #treat CHILDID as numeric variable
+str(d2$CHILDID) #check the variable
+```
+
+```{r}
+d1_long_b <- d1_long%>%
+  mutate(
+    var_type = str_sub(id_variable, 1, 1),
+    wave =  str_sub(id_variable, 2, 2),
+    other_info =  str_sub(id_variable, 3, 10))
+d1_long_b$other_info <- str_replace(d1_long_b$other_info, '_ID', 'ID')
+```

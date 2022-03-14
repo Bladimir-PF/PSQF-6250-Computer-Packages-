@@ -54,6 +54,7 @@ write_csv(ufo_count, path = 'Data/newfile.csv')
 ```{r}
 long_data <- read_csv('Data/LongitudinalEX.csv')
 long_data
+
 extra_long <- long_data%>%
   pivot_longer(agegrp:age.c, names_to = 'variable', values_to = 'value')%>%
   unite(var_wave, variable, wave)
@@ -62,13 +63,13 @@ extra_long
 wide <- extra_long%>%
   pivot_wider(names_from = var_wave, values_from = value)
 wide
+names(wide)
 
 wide%>%
   pivot_longer(-id, names_to = 'variable', values_to = 'value')%>%
   separate(variable, into = c('variable', 'wave'), sep = '_')%>%
   arrange(id, wave)%>%
   pivot_wider(names_from = variable, values_from = value)
-wide
 
 set.seed(10)
 messy <- data.frame(
