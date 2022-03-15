@@ -1,8 +1,8 @@
 ---
 title: "Assignment 3"
 subtitle: 'Exploratory Data Analysis and Data Restructuring'
-author: "Geraldo B. Padilla F."
-date: "04-03-2022"
+author: "Mubarak Mojoyinola, Geraldo Padilla"
+date: "03-15-2022"
 output:
   html_document:
     theme: simplex
@@ -28,88 +28,124 @@ __Research Questions__
 
 1.1 Does there appear to be patterns in the missing data from the variable `tvhours` by different income and age levels?
 
-```{r}
-
-?gss_cat
+```{r exploring.missing, include=FALSE}
 dim(gss_cat)
-
 select(gss_cat, age, tvhours)%>%
   summary()
+sum(is.na(gss_cat$tvhours))
+```
 
+```{r age.miss.plot, echo=FALSE}
 gss_cat%>%
-  mutate(miss_tv = is.na(tvhours))%>%
-  ggplot(., aes(age, ..density..))+
-  geom_freqpoly(aes(color = miss_tv))+
-  theme_bw()
-
-gss_cat%>%
-  group_by(rincome)%>%
-  mutate(miss_tv = sum(is.na(tvhours)))%>%
-  ggplot(., aes(miss_tv, rincome))+
+  mutate(age_cut = cut_width(age, 10))%>%
+  group_by(age_cut)%>%
+  filter(age_cut !='NA')%>%
+  summarise(
+    total = n(),
+    miss_tv = sum(is.na(tvhours)),
+    prop_miss_age = miss_tv/total)%>%
+  ggplot(., aes(prop_miss_age, age_cut))+
   geom_point()+
+  labs(
+    x = "Proportion of tvhours missing data",
+    y = "Age Categories",
+    title = "Proportion of tvhours missing data based on Age Categories")+
   theme_bw()
+```
 
+```{r income.miss.plot, echo=FALSE}
 gss_cat%>%
   group_by(rincome)%>%
   filter(rincome !='Refused' &
            rincome !='No answer' &
            rincome !='Not applicable' &
            rincome !="Don't know")%>%
-  mutate(miss_tv = sum(is.na(tvhours)))%>%
-  ggplot(., aes(miss_tv, rincome))+
-  geom_point()+
-  theme_bw()
-filter(gss_cat, rincome == 'Not applicable'| rincome == "$25000 or more")%>%
   summarise(
-miss_tv = sum(is.na(tvhours)))
+    total = n(),
+    miss_tv = sum(is.na(tvhours)),
+    prop_miss_income = miss_tv/total)%>%
+  ggplot(., aes(prop_miss_income, rincome))+
+  geom_point()+
+  labs(
+    x = "Proportion of tvhours missing data",
+    y = "Income Categories",
+    title = "Proportion of tvhours missing data based on Income Categories")+
+  theme_bw()
 ```
+
+Based on age and income, it seems that there is no relationship between these variables and the amount of missing data in `tvhours`. We decided to use the proportion of missing data in relation to the number of responses within each category instead of the raw amount of missing data in order to adjust for the size of each category.
 
 1.2 Does age appear to be related to the amount of time a person spends watching television?
 
-```{r}
+```{r hours.age, echo=FALSE}
 ggplot(na.omit(gss_cat), aes(age, tvhours))+
-  geom_boxplot(aes(group = cut_width(age, 10)))+
-  theme_bw()
-
-ggplot(gss_cat, aes(age, tvhours))+
   geom_point()+
-  theme_bw()
-
-gss_cat%>%
-  na.omit()%>%
-  mutate(age_cat = cut_width(age, 10))%>%
-  group_by(age_cat)%>%
-  summarise(tv_hours = sum(tvhours, na.rm = T))%>%
-  ggplot(., aes(tv_hours, age_cat))+
-  geom_bar(stat = 'identity', fill="#f68060", alpha=.6, width=.4)+
-  scale_y_discrete(limits=rev)+
+    labs(
+    x = "Age",
+    y = "TV hours",
+    title = "Relationship between Age and TV hours")+
   theme_bw()
 ```
 
+Based on the scatter plot, we can see that there is no apparent relationship between the amount of hours a person spends watching television and age.
+
 # Second part
 
-1. Description of data
-```{r data, include=FALSE}
+1. Read in the “ECLS_6250.csv” data file from the course website.
+```{r data.import, include=FALSE}
 d1 <- read_csv('https://raw.githubusercontent.com/lebebr01/psqf-6250-blogdown/main/data/ECLS_6250.csv')
 names(d1)
 ```
 
-```{r data}
+1.2 Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data
+
+```{r, results='hold', echo=FALSE}
 head(d1)
 dim(d1)
 ```
 
 2. Verify that the data that are indeed missing are read in as missing values. Use the “ECLS_6250.pdf” codebook (found on the course website) to confirm values of missing data for each variable, these are listed for each variable directly in the codebook.
 
-```{r}
-summary(d1)
+```{r missing.data.check, echo=FALSE}
+knitr::kable(
+    d1%>%
+      summarise(
+        KURBAN_R = sum(is.na(KURBAN_R)),
+        C1R4MSCL = sum(is.na(C1R4MSCL)),
+        C2R4MSCL = sum(is.na(C2R4MSCL)),
+        C3R4MSCL = sum(is.na(C3R4MSCL)),
+        C4R4MSCL = sum(is.na(C4R4MSCL)),
+        C5R4MSCL = sum(is.na(C5R4MSCL)),
+        C6R4MSCL = sum(is.na(C6R4MSCL)),
+        C7R4MSCL = sum(is.na(C7R4MSCL)),
+        W1SESL = sum(is.na(W1SESL)),
+        W3SESL = sum(is.na(W3SESL)),
+        W4SESL = sum(is.na(W5SESL)),
+        S2PUBLIC = sum(is.na(S2PUBLIC)))%>%
+    gather(Variable, NAs,
+           KURBAN_R,
+        C1R4MSCL,
+        C2R4MSCL,
+        C3R4MSCL,
+        C4R4MSCL,
+        C5R4MSCL,
+        C6R4MSCL,
+        C7R4MSCL,
+        W1SESL,
+        W3SESL,
+        W4SESL,
+        S2PUBLIC),
+        caption = 'Missing data check',
+  col.names = c(
+    'Variable', 'NAs'),
+  'pipe',
+  format.args = list(big.mark = ',', digits = 3))
 ```
 
 The missing data is correctly included in the data set.
 
-Compute the mean of the following two variables: “C4R4MSCL” and “W3SESL”.
-
-```{r}
+2.1 Compute the mean of the following two variables: “C4R4MSCL” and “W3SESL”.
+```{r, echo=FALSE}
 d1%>%
   summarize(
     mean_C4R4MSCL = mean(C4R4MSCL,  na.rm= T),
@@ -118,7 +154,7 @@ d1%>%
 
 3. Using the tidyr package, convert this data into an extra long format where the variables CHILDID, KURBAN_R, GENDER, and RACE are the id variables. The other data attributes would all represent data values to be restructured.
 
-```{r}
+```{r, include=FALSE}
 d1_long <- d1%>%
   mutate_all(as.character)%>%
   pivot_longer(c(S1_ID, S2_ID, S3_ID, S4_ID, S5_ID, S6_ID, S7_ID,
@@ -126,52 +162,47 @@ d1_long <- d1%>%
                  W1SESL, W3SESL, W5SESL, S2PUBLIC),
                names_to = 'id_variable',
                values_to = 'value')
-d1_long
 ```
 
 Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 6 columns when you are done with this step.
 
-```{r}
+```{r, results='hold'}
 head(d1_long)
 dim(d1_long)
 ```
 
 4. Using the restructured data from #3 above, create three new variables that represent the type of variable (S = School, C = Child, W = family), the wave number, and remaining information. The type of variable and the wave number are the first and second characters of the variable names that were restructured (i.e. stacked) in #3. Hint, using the separate() function would be useful for this step and exploring some random rows of the data may be helpful using head() or tail() or sample_n().
 
-```{r}
+```{r, include=FALSE}
 d1_long_b <- d1_long%>%
  separate(id_variable, into = c('var_type', 'wave', 'other_info'), sep = c(1,2,9))
-
 d1_long_b$other_info <- str_replace(d1_long_b$other_info, '_ID', 'ID')
-
-d1_long_b
 ```
 
 Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 8 columns when you are done with this step.
 
-```{r}
+```{r, results='hold'}
 head(d1_long_b)
 dim(d1_long_b)
 ```
 
 5. Using the restructured data from #4, combine the variable type (i.e., the attribute that is either S, C, or W) and left-over names. This new variable should be similar to the original variable names from when reading in the data from #1, but should not include the wave information in it. Hint, the unite() function should be helpful for this step.
 
-```{r}
+```{r, include=FALSE}
 d1_long_c <- d1_long_b%>%
   unite(ID, var_type, other_info)
-d1_long_c
 ```
 
 Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data. Note, you should have 7 columns when you are done with this step.
 
-```{r}
+```{r, results='hold'}
 head(d1_long_c)
 dim(d1_long_c)
 ```
 
 6. Finally, using the restructured data from #5, widen the data set to create a variable for each unique value from the newly created variable from #5.
 
-```{r}
+```{r, include=FALSE}
 d1_long_d <- d1_long_c%>%
   pivot_wider(names_from = ID, values_from = value)
 ```
@@ -185,22 +216,20 @@ dim(d1_long_d)
 
 7. Read in the “ECLS_6250_school.csv” data file found on the course website. Using the restructured data created in #6, merge the school data imported in question #7 into the child level data. Use the type of join where the number of rows for the child level data are not changed. More specifically, the final data should have the same number of rows as #6, but will add 5 new columns.
 
-```{r}
+```{r dataset.schools, include=FALSE}
 d2 <- read_csv('https://raw.githubusercontent.com/lebebr01/psqf-6250-blogdown/main/data/ECLS_6250_school.csv')
 ```
 
-```{r, results='hold'}
+```{r, include=FALSE}
 str(d1_long_d)
 str(d2)
-
 d1_long_d$KURBAN_R <- as.numeric(d1_long_d$KURBAN_R)
-
 d3 <- left_join(d1_long_d, d2)
 ```
 
-Using the head() function, print the first few rows of the merged data and using the dim() function, print out the dimensions of the merged data. 1 pt
+Using the head() function, print the first few rows of the merged data and using the dim() function, print out the dimensions of the merged data.
 
-```{r}
+```{r, results='hold'}
 head(d3)
 dim(d3)
 ```
@@ -209,16 +238,19 @@ dim(d3)
 
 Identify the 25 schools at wave 1 that have the highest proportion of female students and create a new data file that has the school ID and proportion of female students in the school. Note: Use the codebook to identify which code represents males and females. It may also be helpful, although not necessary, to create a new variable for gender.
 
-```{r}
+```{r, include=FALSE}
 d3 <- d3%>%
   mutate(
   gender = ifelse(GENDER == 2, 1, 0))
 d3$gender[d3$GENDER == -9] <- NA
+```
 
+
+```{r, echo=FALSE}
 d4 <- d3%>%
   filter(wave == 1)%>%
   group_by(S_ID)%>%
-  summarise(prop_fem = mean(gender))%>%
+  summarise(prop_fem = mean(gender, na.rm = T))%>%
   arrange(desc(prop_fem))%>%
   head(.,25)
 d4
@@ -226,15 +258,15 @@ d4
 
 Perform a filtering join that returns only the rows from the child level data (i.e., the final data from #7) at wave 1 that belong to the 25 schools that had the highest proportion of females at wave 1 (from step one of this question).
 
-```{r}
+```{r, include=FALSE}
 d5 <- d3%>%
+  filter(wave == 1)%>%
   semi_join(d4)
-d5
 ```
 
 Using the head() function, print the first few rows of the data and using the dim() function, print out the dimensions of the data.
 
-```{r}
+```{r, results='hold'}
 head(d5)
 dim(d5)
 ```
