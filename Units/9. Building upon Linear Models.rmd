@@ -1,0 +1,89 @@
+---
+title: "Building upon Linear Models"
+author: "Geraldo B. Padilla F."
+date: "15-03-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(broom)
+library(fivethirtyeight)
+library(forcats)
+```
+
+## More than 2 groups
+
+```{r}
+gss_cat
+
+count(gss_cat, marital)
+
+gss_cat <- gss_cat%>%
+  mutate(
+    marital_miss = fct_recode(marital,
+                              NULL = 'No answer'))
+
+count(gss_cat, marital_miss)# NAs are excluded from the analysis
+
+anova_mod <- lm(tvhours~1+marital_miss, data = gss_cat)
+summary(anova_mod)
+
+model.matrix(anova_mod)
+
+anova(anova_mod)
+aov(anova_mod)
+
+gss_cat%>%
+  na.omit()%>%
+  group_by(marital_miss)%>%
+  summarise(Mean = mean(tvhours)) #sample means of the 5 groups
+# these means are the same that the observed values
+
+gss_cat%>%
+  na.omit()%>%
+  ggplot(., aes(marital_miss, tvhours))+
+  geom_boxplot(aes(middle = mean(tvhours)))+
+  theme_bw()+
+  coord_cartesian(ylim = c(0, 9))
+```
+
+## Adjusting the reference group
+
+```{r}
+gss_cat <- gss_cat%>%
+  mutate(marital_m_widow = fct_relevel(marital_miss, 'Widowed'))#with forcats package
+levels(gss_cat$marital_m_widow)
+
+d1 <- gss_cat%>%
+  mutate(marital_new = fct_relevel(marital_miss,
+                                   'Divorced',
+                                   'Separated',
+                                   'Widowed'))
+levels(d1$marital_new)
+
+summary(lm(tvhours~1+marital_m_widow, data = gss_cat))
+summary(anova_mod)
+
+gss_cat%>%
+  mutate(
+    separated = ifelse(marital_miss == 'Separated', 1, 0),
+    divorced = ifelse(marital_miss == 'Divorced', 1, 0),
+    never_married = ifelse(marital_miss == 'Never married', 1, 0),
+    married = ifelse(marital_miss == 'Married', 1, 0)) #with ifelse function
+
+gss_cat%>%
+  mutate(
+    separated = ifelse(marital_miss == 'Separated', 1, 0),
+    divorced = ifelse(marital_miss == 'Divorced', 1, 0),
+    never_married = ifelse(marital_miss == 'Never married', 1, 0),
+    married = ifelse(marital_miss == 'Married', 1, 0))
+
+summary(lm(tvhours~1+separated+divorced+never_married+married, data = gss_cat))
+```
+
