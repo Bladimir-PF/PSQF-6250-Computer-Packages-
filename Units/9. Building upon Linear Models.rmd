@@ -225,8 +225,6 @@ ggplot(SCI2, aes(Contrast, MD, color = Sig))+
 ## Interactions
 
 ```{r}
-library(stringr)
-
 heights
 
 afqt_sex <- lm(afqt~1+sex, data = heights)
@@ -236,8 +234,8 @@ count(heights, marital)
 
 heights <- heights%>%
   mutate(marital_comb = fct_recode(marital,
-                              'Other' = 'separated',
-                              'Other' = 'widowed'))
+                              'other' = 'separated',
+                              'other' = 'widowed'))
 afqt_sex_marital <- lm(afqt~1+sex+marital_comb, data = heights)
 summary(afqt_sex_marital) #single is the reference category
 
