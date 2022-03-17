@@ -24,12 +24,13 @@ gss_cat
 
 count(gss_cat, marital)
 
+#is there any relationship between the hours a person spends watching tv and the marital status?
 gss_cat <- gss_cat%>%
   mutate(
     marital_miss = fct_recode(marital,
                               NULL = 'No answer'))
 
-count(gss_cat, marital_miss)# NAs are excluded from the analysis
+count(gss_cat, marital_miss)# NAs are excluded from the analysis (No answer from above)
 
 anova_mod <- lm(tvhours~1+marital_miss, data = gss_cat)
 summary(anova_mod)
@@ -37,13 +38,11 @@ summary(anova_mod)
 model.matrix(anova_mod)
 
 anova(anova_mod)
-aov(anova_mod)
 
 gss_cat%>%
   na.omit()%>%
   group_by(marital_miss)%>%
-  summarise(Mean = mean(tvhours)) #sample means of the 5 groups
-# these means are the same that the observed values
+  summarise(Mean = mean(tvhours)) #sample means of the 5 groups. These means are the same that the observed values in the model (anova_mod)
 
 gss_cat%>%
   na.omit()%>%
@@ -64,26 +63,282 @@ d1 <- gss_cat%>%
   mutate(marital_new = fct_relevel(marital_miss,
                                    'Divorced',
                                    'Separated',
-                                   'Widowed'))
+                                   'Widowed'))#we can establish the order among factor levels manually.
 levels(d1$marital_new)
 
-summary(lm(tvhours~1+marital_m_widow, data = gss_cat))
-summary(anova_mod)
+anova_mod2 <- lm(tvhours~1+marital_m_widow, data = gss_cat)
+anova_mod3 <- lm(tvhours~1+marital_new, data = d1)
 
-gss_cat%>%
+summary(anova_mod)
+summary(anova_mod2)
+summary(anova_mod3)
+
+gss_cat <- gss_cat%>%
   mutate(
     separated = ifelse(marital_miss == 'Separated', 1, 0),
     divorced = ifelse(marital_miss == 'Divorced', 1, 0),
     never_married = ifelse(marital_miss == 'Never married', 1, 0),
     married = ifelse(marital_miss == 'Married', 1, 0)) #with ifelse function
 
-gss_cat%>%
-  mutate(
-    separated = ifelse(marital_miss == 'Separated', 1, 0),
-    divorced = ifelse(marital_miss == 'Divorced', 1, 0),
-    never_married = ifelse(marital_miss == 'Never married', 1, 0),
-    married = ifelse(marital_miss == 'Married', 1, 0))
+anova_mod4 <- lm(tvhours~1+separated+divorced+never_married+married, data = gss_cat)
+summary(anova_mod4)
 
-summary(lm(tvhours~1+separated+divorced+never_married+married, data = gss_cat))
+d2 <- gss_cat%>%
+    mutate(
+    new_marital = fct_recode(marital_miss,
+                            'widowed' = "Widowed",
+                            'separated' = "Separated",
+                            'divorced_NM' = "Divorced",
+                            'divorced_NM' = 'Never married',
+                            'married' = "Married"),
+    new_marital = fct_relevel(new_marital, 'divorced_NM'))
+count(d2, new_marital)
+count(gss_cat, marital_miss)
+
+anova_mod5 <- lm(tvhours ~ 1+new_marital, data = d2)
+summary(anova_mod5)
+
 ```
 
+## Post Hoc Test
+
+```{r}
+library(multcomp)
+
+levels(gss_cat$marital_m_widow)#we will use these level values to create linear contrasts that test all pairwise categories
+gss_cat <- gss_cat%>%
+  mutate(marital_m_widow = fct_recode(marital_m_widow,
+                                      'Never_married' = 'Never married'))
+anova_mod <- lm(tvhours~1+marital_m_widow, data = gss_cat)
+summary(anova_mod)
+
+mycontrasts <- c('Widowed - Never_married = 0',
+                 'Widowed - Separated = 0',
+                 'Widowed - Divorced = 0',
+                 'Widowed - Married = 0',
+                 'Never_married - Separated = 0',
+                 'Never_married - Divorced = 0',
+                 'Never_married - Married = 0',
+                 'Separated - Divorced = 0',
+                 'Separated - Married = 0',
+                 'Divorced - Married = 0')
+
+contr_results <- glht(anova_mod, linfct = mcp(marital_m_widow = mycontrasts))
+#mcp stands for multiple comparison
+summary(contr_results) #these p-values are already adjusted
+
+summary(contr_results, test = adjusted('BH'))
+
+summary(glht(anova_mod, linfct = mcp(marital_m_widow = 'Tukey')),
+        test = adjusted('BH'))
+
+ci <- confint(summary(glht(anova_mod, mcp(marital_m_widow = 'Tukey')),
+                      test = adjusted('BH')))
+ci
+
+SCI <- data.frame(
+  Contrast = 1:nrow(ci$confint), #contrast number
+  MD = ci$confint[, 1], #mean difference
+  LL = ci$confint[, 2], #lower limit
+  UL = ci$confint[, 3], #upper limit
+  Sig = c('Yes', 'No','Yes','Yes','Yes','No','Yes','Yes','Yes','Yes'), #statistically reliable?
+  Alpha = c(1, .75, 1, 1, 1, .75, 1, 1, 1, 1),
+  Names = rownames(ci$confint) #contrast label
+)
+
+#plot of the simultaneous intervals
+ggplot(SCI, aes(Contrast, MD, color = Sig))+
+  geom_point(size = 4)+
+  geom_segment(aes(Contrast, xend = Contrast, y = LL,
+                   yend = UL, alpha = Alpha), lwd = 1.5)+
+  geom_hline(yintercept = 0, lty = 'dotted')+
+  scale_color_manual(values = c('Black', 'Gold'))+
+  scale_x_continuous(
+    name = '',
+    breaks = 1:10,
+    labels = SCI$Names)+
+  ylab('Mean Difference')+
+  coord_flip()+
+  theme_bw()+
+  theme(
+    legend.position = 'none',
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+colnames(gss_cat)
+count(gss_cat, partyid)
+str(gss_cat$partyid)
+
+gss_cat <- gss_cat%>%
+  mutate(partyid = fct_recode(partyid,
+                              NULL = 'No answer',
+                              NULL = "Don't know",
+                              NULL = 'Other party'))
+levels(gss_cat$partyid)
+
+anova_mod6 <- lm(tvhours~1+partyid, data = gss_cat)
+summary(anova_mod6)
+
+summary(glht(anova_mod6, linfct = mcp(partyid = 'Tukey')),
+        test = adjusted('BH'))
+
+ci2 <- confint(summary(glht(anova_mod6, linfct = mcp(partyid = 'Tukey')), test = adjusted('BH')))
+
+ci2
+
+SCI2 <- data.frame(
+  Contrast = 1:nrow(ci2$confint), #contrast number
+  MD = ci2$confint[, 1], #mean difference
+  LL = ci2$confint[, 2], #lower limit
+  UL = ci2$confint[, 3], #upper limit
+  Sig = c('No','No','Yes','No','Yes','Yes','No',
+          'Yes','No','Yes','Yes','Yes','No','Yes',
+          'Yes','Yes','No','Yes','Yes','Yes','Yes'), #statistically reliable?
+  Alpha = c(.75,.75,1,.75,1,1,.75,
+            1,.75,1,1,1,.75,1,
+            1,1,.75,1,1,1,1),
+  Names = rownames(ci2$confint) #contrast label
+)
+
+#plot of the simultaneous intervals
+ggplot(SCI2, aes(Contrast, MD, color = Sig))+
+  geom_point(size = 4)+
+  geom_segment(aes(Contrast, xend = Contrast, y = LL,
+                   yend = UL, alpha = Alpha), lwd = 1.5)+
+  geom_hline(yintercept = 0, lty = 'dotted')+
+  scale_color_manual(values = c('Black', 'Gold'))+
+  scale_x_continuous(
+    name = '',
+    breaks = 1:21,
+    labels = SCI2$Names)+
+  ylab('Mean Difference')+
+  coord_flip()+
+  theme_bw()+
+  theme(
+    legend.position = 'none',
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+)
+```
+
+## Interactions
+
+```{r}
+library(stringr)
+
+heights
+
+afqt_sex <- lm(afqt~1+sex, data = heights)
+summary(afqt_sex)
+
+count(heights, marital)
+
+heights <- heights%>%
+  mutate(marital_comb = fct_recode(marital,
+                              'Other' = 'separated',
+                              'Other' = 'widowed'))
+afqt_sex_marital <- lm(afqt~1+sex+marital_comb, data = heights)
+summary(afqt_sex_marital) #single is the reference category
+
+model.matrix(afqt_sex_marital)
+
+interact_mod <- lm(afqt~1+sex*marital_comb, data = heights)
+summary(interact_mod)
+
+anova(interact_mod)
+model.matrix(interact_mod)
+
+colnames(gss_cat)
+levels(gss_cat$marital_miss)
+levels(gss_cat$partyid)
+count(gss_cat, partyid)
+
+m1 <- lm(age~1+marital_miss*partyid, data = gss_cat)
+summary(m1)
+
+gss_cat <- gss_cat%>%
+  mutate(partyid =  fct_recode(partyid,
+                               'republican' = "Strong republican",
+                               'republican' = "Not str republican",
+                               'republican' = "Ind,near rep",
+                               'democrat' = "Ind,near dem",
+                               'democrat' = "Not str democrat",
+                               'democrat' = "Strong democrat",
+                               'other' = "Independent"),
+         partyid = replace_na(partyid, 'other'))
+
+m2 <- lm(age~1+marital_miss*partyid, data = gss_cat)
+summary(m2)
+```
+
+## Visualize model results
+
+```{r}
+marital_means <- heights %>%
+  group_by(marital_comb) %>%
+  summarise(avg_afqt = mean(afqt, na.rm = TRUE),
+            sd_afqt = sd(afqt, na.rm = TRUE), 
+            n = n()) %>%
+  mutate(se_mean = sd_afqt/sqrt(n), 
+         group = 'Marital', 
+         levels = marital_comb) %>%
+  ungroup() %>%
+  dplyr::select(-marital_comb)
+
+sex_means <- heights %>%
+  group_by(sex) %>%
+  summarise(avg_afqt = mean(afqt, na.rm = TRUE),
+            sd_afqt = sd(afqt, na.rm = TRUE), 
+            n = n()) %>%
+  mutate(se_mean = sd_afqt/sqrt(n),
+         group = 'Sex', 
+         levels = sex) %>%
+  ungroup() %>%
+  dplyr::select(-sex)
+
+comb_means <- bind_rows(marital_means, sex_means)
+comb_means
+
+ggplot(comb_means, aes(avg_afqt, fct_reorder(levels, avg_afqt))) + 
+  geom_point(size = 3) + 
+  facet_grid(group ~ ., scales = 'free', space = 'free') + 
+  ylab("Groups") + 
+  xlab("Average Armed Forces Qualification Score") + 
+  theme_bw()
+
+ggplot(comb_means, aes(avg_afqt, fct_reorder(levels, avg_afqt))) + 
+  geom_point(size = 3) + 
+  geom_errorbarh(aes(xmin = avg_afqt - se_mean*2, xmax = avg_afqt + se_mean*2),
+                 height = 0) + 
+  facet_grid(group ~ ., scales = 'free', space = 'free') +
+  ylab("Groups") + 
+  xlab("Average Armed Forces Qualification Score") + 
+  theme_bw()
+
+int_means <- heights %>%
+  group_by(marital_comb, sex) %>%
+  summarise(avg_afqt = mean(afqt, na.rm = TRUE),
+            sd_afqt = sd(afqt, na.rm = TRUE), 
+            n = n()) %>%
+  mutate(se_mean = sd_afqt/sqrt(n))
+int_means
+
+ggplot(int_means, aes(avg_afqt, fct_reorder(marital_comb, avg_afqt), 
+                      shape = sex, linetype = sex, group = sex)) + 
+  geom_point(size = 3) + 
+  geom_line(size = 1) + 
+  ylab("Groups") + 
+  xlab("Average Armed Forces Qualification Score") + 
+  theme_bw()
+
+ggplot(int_means, aes(avg_afqt, fct_reorder(marital_comb, avg_afqt), 
+                      shape = sex, linetype = sex, group = sex)) + 
+  geom_point(size = 3) + 
+  geom_line(size = 1) + 
+  geom_errorbarh(aes(xmin = avg_afqt - se_mean * 2, xmax = avg_afqt + se_mean * 2), 
+                 height = 0) +
+  ylab("Groups") + 
+  xlab("Average Armed Forces Qualification Score") + 
+  theme_bw()
+```
