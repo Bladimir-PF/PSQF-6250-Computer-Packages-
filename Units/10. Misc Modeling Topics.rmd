@@ -1,0 +1,60 @@
+---
+title: "Misc Modeling Topics"
+author: "Geraldo B. Padilla F."
+date: "17-03-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE}
+library(tidyverse)
+library(modelr)
+library(broom)
+library(fivethirtyeight)
+library(forcats)
+```
+
+
+## Interaction between continuous and categorical predictors
+
+```{r}
+heights <- heights%>%
+  mutate(marital_comb = fct_recode(marital,
+                              'other' = 'separated',
+                              'other' = 'widowed'))
+
+summary(lm(afqt~1+marital_comb+height, data = heights))
+
+ggplot(heights, aes(x = height, y = afqt)) + 
+  geom_jitter(size = 2) + 
+  geom_abline(intercept = -26.02, slope = 1.002, size = 1, color = 'blue') + 
+  coord_cartesian(xlim = c(0, 90), ylim = c(-30, 105)) +
+  ylab("Average Armed Forces Qualification Score") + 
+  xlab("Height") +
+  theme_bw()
+
+summary(lm(afqt~1+marital_comb+I(height - mean(heights$height)), data = heights)) #capital I = isolate
+
+heights <- heights%>%
+  mutate(
+    height_cent = height - mean(height)
+  )
+
+summary(lm(afqt~1+marital_comb+height_cent, data = heights))
+
+summary(lm(afqt~1+marital_comb*height_cent, data = heights))
+
+model_summary <- augment(lm(afqt~1+marital_comb*height_cent, data = heights))
+model_summary
+
+ggplot(model_summary, aes(height_cent, afqt))+
+  geom_jitter(alpha = .1)+
+  geom_line(aes(x = height_cent, y = .fitted, color = marital_comb), size = 1)+
+  ylab('Avg Arm For Quant Score')+
+  xlab('Height')+
+  theme_bw()
+```
+
