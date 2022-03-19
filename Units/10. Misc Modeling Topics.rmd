@@ -26,7 +26,8 @@ heights <- heights%>%
                               'other' = 'separated',
                               'other' = 'widowed'))
 
-summary(lm(afqt~1+marital_comb+height, data = heights))
+afqt_mod <- lm(afqt~1+marital_comb+height, data = heights)
+summary(afqt_mod)
 
 ggplot(heights, aes(x = height, y = afqt)) + 
   geom_jitter(size = 2) + 
@@ -56,5 +57,89 @@ ggplot(model_summary, aes(height_cent, afqt))+
   ylab('Avg Arm For Quant Score')+
   xlab('Height')+
   theme_bw()
+```
+
+## Statistical Assumption Checking with lm()
+
+```{r}
+heights2 <- heights %>%
+  mutate(
+    marital_comb = fct_recode(marital,
+          'Other' = 'separated',
+          'Other' = 'widowed'))
+
+afqt_mod <- lm(afqt ~ marital_comb + height, data = heights2)
+summary(afqt_mod)
+
+heights2 <- heights2 %>%
+  mutate(income2 = ifelse(income == 0, .001, income),
+         height2 = height - mean(height, na.rm = TRUE),
+         education2 = education - mean(education, na.rm = TRUE),
+         weight2 = weight - mean(weight, na.rm = TRUE),
+         log_income = log(income2))
+afqt_alt <- lm(afqt ~ marital_comb + height2 + education2 + 
+                 log_income + weight2, data = heights2)
+summary(afqt_alt)
+
+plot(afqt_alt)
+
+aug_afqt <- augment(afqt_alt)
+aug_afqt
+
+heights_resid <- heights2%>%
+  add_residuals(afqt_alt)%>%
+  add_predictions(afqt_alt)
+heights_resid
+
+filter(heights_resid, abs(resid) > 50)
+
+ggplot(heights_resid, aes(resid))+
+  geom_histogram()+
+  theme_bw()
+
+ggplot(heights_resid, aes(resid, education2))+
+  geom_point(size = 3, alpha = .1)+
+  geom_smooth(size = 1, se = F)+
+  theme_bw()
+```
+
+## Modeling Non-Linear Trends
+
+```{r}
+#To create new variables is useful to use mutate() or I() insulate directly into the model syntax.
+
+heights2 <- heights2%>%
+  mutate(
+    height2_quad = height2^2,
+    weight2_quad = weight2^2,
+    log_income_quad = log_income^2,
+    education2_quad = education2^2)
+
+afqt_alt <- lm(afqt ~ marital_comb + height2 + education2 + 
+                 log_income + weight2+height2_quad+weight2_quad+log_income_quad+education2_quad, data = heights2)
+summary(afqt_alt)
+
+plot(afqt_alt)
+
+heights2 <- heights2%>%
+  mutate(
+    afqt2 = ifelse(afqt == 0, .00001, ifelse(afqt == 100, 99.999999, afqt)),
+    afqt3 = ifelse(afqt == 0, NA, ifelse(afqt == 100, NA, afqt)),
+    afqt_z = qnorm(afqt2/100),
+    afqt_z3 = qnorm(afqt3/100),
+  )
+
+afqt_alt2 <- lm(afqt_z3 ~1+marital_comb+height2 + education2+log_income+weight2+
+                  height2_quad+weight2_quad+log_income_quad+education2_quad,
+                data=heights2)
+summary(afqt_alt2)
+
+plot(afqt_alt2)
+```
+
+## glm() Function
+
+```{r}
+
 ```
 
