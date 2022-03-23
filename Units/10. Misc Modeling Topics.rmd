@@ -15,6 +15,7 @@ library(modelr)
 library(broom)
 library(fivethirtyeight)
 library(forcats)
+library(glm2)
 ```
 
 
@@ -140,6 +141,28 @@ plot(afqt_alt2)
 ## glm() Function
 
 ```{r}
+titanic <- read_csv('Data/titanic.csv')
+names(titanic)
 
+surv_mod <- glm(Survived~1+factor(Pclass)+Fare+Sex+Age, family = binomial(link = 'logit'), data = titanic)
+summary(surv_mod)
+
+prob_mod <- titanic%>%
+  select(Survived, Pclass, Fare, Sex, Age)%>%
+  na.omit()%>%
+  mutate(
+    prob = predict(surv_mod, type = 'response')
+  )
+prob_mod
+
+#prediction(surv_mod, type = 'response', at = list(Pclass=3, Fare=7.25, Sex = 'male', Age=22))
+#If we use prediction from margins package, we will obtain the same result.
+
+ggplot(prob_mod, aes(Age, prob, linetype = Sex))+
+  geom_line(aes(color = Sex), size = 1)+
+  facet_grid(.~Pclass)+
+  xlab('Age')+
+  ylab('Probs')+
+  theme_bw()
 ```
 
