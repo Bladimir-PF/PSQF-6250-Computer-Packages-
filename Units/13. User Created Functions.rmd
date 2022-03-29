@@ -1,0 +1,51 @@
+---
+title: "13. User Created Functions"
+author: "Geraldo B. Padilla F."
+date: "29-03-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# When to create a function
+
+```{r}
+library(tidyverse)
+
+midwest
+
+midwest <- midwest%>%
+  mutate(
+    stand_poptotal = (poptotal  - mean(poptotal)) / sd(poptotal)
+  )
+select(midwest, poptotal, stand_poptotal)
+
+standardize <- function(x){
+  mean_var <- mean(x)
+  sd_var <- sd(x)
+  (x - mean_var) / sd_var
+}
+
+midwest <- midwest%>%
+  mutate(
+    stand_poptotal2 = standardize(poptotal)
+  )
+select(midwest, poptotal, stand_poptotal, stand_poptotal2)
+
+scale(midwest$poptotal)
+```
+
+## Conditional summarise() or mutate() statements
+
+```{r}
+mpg
+
+summarise_if(mpg, is.numeric, mean, na.rm = T)
+
+mpg%>%
+  group_by(manufacturer)%>%
+  summarise_if(is.numeric, list(mean,sd), na.rm = T)
+```
+
