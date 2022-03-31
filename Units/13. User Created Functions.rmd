@@ -179,3 +179,18 @@ desc_stats_sw(flights$arr_delay, statistic = 'quantile')
 ```
 
 ## Thinking about Returned Values
+
+```{r}
+desc_stats <- function(variable,
+                       statistic = c('sd', 'mean', 'median', 'quantile')){
+  if(statistic == 'sd'){
+    return(sd(variable, na.rm = T))
+  } else if(statistic == 'mean'){
+    return(mean(variable, na.rm = T))
+  } else if(statistic == 'median'){
+    return(median(variable, na.rm = T))
+  } else #it works as anything else {
+    return(quantile(variable, na.rm = T))
+  }
+```
+

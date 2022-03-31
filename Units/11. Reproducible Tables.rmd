@@ -1,0 +1,37 @@
+---
+title: "11. Reproducible Tables"
+author: "Geraldo B. Padilla F."
+date: "31-03-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Reproducible Tables
+
+```{r}
+library(kableExtra)
+library(formattable)
+library(tidyverse)
+```
+
+
+```{r}
+titanic <- read_csv('Data/titanic.csv')
+
+titanic%>%
+  group_by(Pclass)%>%
+  summarise(
+    avg_age = mean(Age, na.rm = T),
+    sd_age = sd(Age, na.rm = T),
+    avg_fare = mean(Fare, na.rm = T),
+    sd_fare = sd(Fare, na.rm = T),
+    min_fare = min(Fare, na.rm = T),
+    max_fare = max(Fare, na.rm = T),
+    perc_survived = mean(Survived, na.rm = T) * 100,
+    n_pass = n())%>%
+  kable()
+```
+
