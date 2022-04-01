@@ -11,17 +11,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Reproducible Tables
 
-```{r}
+```{r, include=FALSE}
 library(kableExtra)
 library(formattable)
 library(tidyverse)
 ```
 
+```{r, include=FALSE}
+titanic <- read_csv("C:/Users/Lenovo/OneDrive - University of Iowa/PhD portfolio/2. Courses/Spring 2022/PSQF62500EXW Computer Packages for Statistcl Analysis (Brandon LeBeau)/PSQF-6250-Computer-Packages-/Data/titanic.csv")
+```
+
 
 ```{r}
-titanic <- read_csv('Data/titanic.csv')
-
-titanic%>%
+titanic_summary <- titanic%>%
   group_by(Pclass)%>%
   summarise(
     avg_age = mean(Age, na.rm = T),
@@ -31,7 +33,75 @@ titanic%>%
     min_fare = min(Fare, na.rm = T),
     max_fare = max(Fare, na.rm = T),
     perc_survived = mean(Survived, na.rm = T) * 100,
-    n_pass = n())%>%
-  kable()
+    n_pass = n())
+
+kable(titanic_summary, digits = 2)
+
+kable(titanic_summary, digits = c(0, 2,2,2,2,1,1,3,0)) #number of decimals
+
+kable(titanic_summary, digits = c(0, 2, 2, 2, 2, 1, 1, 3, 0),
+        col.names = c('Class', 'Avg. Age', 'SD Age', 'Avg. Fare', 'SD Fare', 
+                      'Min. Fare', 'Max. Fare', '% Survived', 'Number of Passengers')) #colnames transforms each column name
+
+kable(titanic_summary, digits = c(0, 2, 2, 2, 2, 1, 1, 3, 0),
+        col.names = c('Class', 'Avg. Age', 'SD Age', 'Avg. Fare', 'SD Fare', 
+                      'Min. Fare', 'Max. Fare', '% Survived', 'Number of Passengers'),
+        align = 'crrrrrrrr') #Alignment of columns
+
+kable(titanic_summary, digits = c(0, 2, 2, 2, 2, 1, 1, 3, 0),
+        col.names = c('Class', 'Avg. Age', 'SD Age', 'Avg. Fare', 'SD Fare', 
+                      'Min. Fare', 'Max. Fare', '% Survived', 'Number of Passengers'),
+        align = 'crrrrrrrr',
+        caption = 'Descriptive statistics of Titanic passengers by ticket class')
+```
+
+## Formatting Table with kableExtra
+
+```{r}
+tit_kable <- kable(titanic_summary, digits = c(0, 2, 2, 2, 2, 1, 1, 3, 0),
+        col.names = c('Class', 'Avg. Age', 'SD Age', 'Avg. Fare', 'SD Fare', 
+                      'Min. Fare', 'Max. Fare', '% Survived', 'Number of Passengers'),
+        align = 'crrrrrrrr',
+        caption = 'Descriptive statistics of Titanic passengers by ticket class')
+
+#Bootstrap table options
+
+kable_styling(tit_kable)
+
+kable_styling(tit_kable, bootstrap_options = 'striped')#fills the background
+kable_styling(tit_kable, bootstrap_options = 'hover')=#highlights rows
+kable_styling(tit_kable, bootstrap_options = 'condensed')#data are downsized
+kable_styling(tit_kable, bootstrap_options = 'responsive')#scroll bars
+kable_styling(tit_kable, bootstrap_options = 'bordered')#cells
+kable_styling(tit_kable, bootstrap_options = c('striped', 'hover', 'condensed', 
+                                      'responsive', 'bordered'))
+
+titanic_summary_small <- titanic%>%
+  group_by(Pclass)%>%
+  summarise(
+    avg_age = mean(Age, na.rm = T),
+    avg_fare = mean(Fare, na.rm = T),
+    perc_survived = mean(Survived) * 100,
+    number_passenger = n())
+
+summ_kable <- kable(titanic_summary_small,
+      digits = c(0,2,2,3,0),
+      colnames = c('Class', 'Avg. Age', 'Avg. Fare',' % Survived', 'Number of Passengers'),
+      align = 'crrrr',
+      captions = 'Descriptive Statistics of Titanic Passengers by Ticket Class')
+
+kable_styling(summ_kable,
+              bootstrap_options = c('striped', 'hover', 'condensed'),
+              full_width = F, position = 'float_right')
+
+kable_styling(summ_kable,
+              bootstrap_options = c('striped', 'hover', 'condensed'),
+              full_width = F, position = 'center', font_size =15)
+```
+
+## Column, Row, and Cell Formatting
+
+```{r}
+
 ```
 
