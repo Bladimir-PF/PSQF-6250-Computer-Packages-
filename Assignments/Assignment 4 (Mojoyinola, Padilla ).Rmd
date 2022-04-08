@@ -1,0 +1,64 @@
+---
+title: "Assignment 4"
+subtitle: 'Inferential Statistics and Turning Tables into Graphics with R'
+author: "Mubarak Mojoyinola, Geraldo Padilla"
+date: "08-04-2022"
+output:
+  html_document:
+    theme: simplex
+    highlight: textmate
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+```
+
+```{r packages, message=FALSE}
+library(tidyverse)
+```
+
+## Part 1: Inferential Statistics with R
+
+```{r dataset}
+d1 <- read.csv('https://raw.githubusercontent.com/lebebr01/statthink/main/data-raw/cal-fire-9-10-2020.csv')
+```
+
+1. Using text processing, create three new variables in the data that represents:
+
+- the year the fire started
+- the month the fire started
+- Create a new variable that represents the length of time a fire burned. This can be created by using the difftime() function within R. Look at the help page to try to figure out how this function can compute differences in two dates.
+
+```{r q1, include=TRUE}
+
+```
+
+
+The code is sufficient for this question. 1 pt
+
+2. Are there any data points that are extreme values or outliers that you feel should be removed from this analysis? Discuss briefly, why you feel these values may impact the analysis and should therefore be removed. Be as specific as you can why any values should or should not be removed. If you identify data that are suspect, remove them from further analysis (i.e. use filter to remove the values). 1 pt
+
+3. Fit two competing models to attempt to answer the 1st and 2nd research questions. Summarize briefly the results from the models with particular attention to answering the research question so that non-statistics/data science individuals could use the answer for their planning or decision making process. Note, consider carefully the best approach on how to include month and year in your models (i.e., continuous vs factor type variables). 1 pt
+
+Which model fits best or do you feel is the best model?
+Note, please do not include the output from the summary() function in your answer, instead pull out relevant information from the output to include in your description.
+
+4. Check assumptions for the models from #3. Does there appear to be problems with meeting statistical assumptions? Provide rationale for why or why not. 1 pt
+
+5. Fit another model to attempt to answer the third research question. Summarize briefly the results from the model with particular attention to answering the research question so that non-statistics/data science individuals could use the answer for their planning or decision making process. 1 pt
+
+Note, please do not include the output from the summary() function in your answer, instead pull out relevant information from the output to include in your description.
+
+6. Finally, create a graphic that summarizes the results from your final model that you feel fits the data the best (i.e. this could be the model from #4 or #7). Discuss why you picked this model and describe why this figure does a good job of showing the takeaway message. 1 pt
+
+## Part 2: Turning Tables into Graphics with R
+
+1. Find a published table showing descriptive or inferential statistic results. Provide a copy of the table (a screen shot is fine for this purpose).
+
+2. Turn the table from #1 above into a publication quality graphic using R. Ensure that this graphic conveys the same purpose as the original table. 1 pt
+
+3. Create a different from the figure created in #3 above, and make an interactive graphic that attempts to convey the same message as the original table. Note, this figure should be an entirely different figure from that in #3. For example, if you created a bar chart in #3, create something other than a bar chart for this question. 1 pt
+
+4. Briefly discuss whether you feel the graphs convey the message better or worse than the original table. Use specific examples from the table/graph and recommendations from the article in your discussion. Which figure do you feel does the best job in sharing the original purpose of the table? Be specific in your discussion. 1 pt
+
+5. Take the data from the original table, to do this you may need to create an Excel file or use the function data.frame() to import the data from the original table. Use the kable() function and kableExtra package to create a reproducible table that looks as close as possible to the original table. 1 pt
