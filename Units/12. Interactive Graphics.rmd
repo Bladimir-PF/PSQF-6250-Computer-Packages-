@@ -1,0 +1,176 @@
+---
+title: "12. Interactive Graphics"
+author: "Geraldo B. Padilla F."
+date: "12-04-2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction to Interactive Graphics
+
+```{r}
+library(plotly)
+library(tidyverse)
+
+p <- ggplot(midwest)+
+  geom_point(aes(popdensity, percollege))
+ggplotly(p)
+
+p <- ggplot(midwest, aes(popdensity, percollege, color = state))+
+  geom_point()+
+  scale_x_continuous('Population Density', breaks = seq(0, 80000, 20000))+
+  scale_y_continuous('Percent College Graduates')+
+  scale_color_discrete('State')+
+  theme_bw()
+ggplotly(p)
+```
+
+## Creating plotly Figures from Scratch
+
+```{r}
+lotr <- read_tsv('https://raw.githubusercontent.com/jennybc/lotr/master/lotr_clean.tsv')
+
+plot_ly(lotr, x = ~Words)%>%
+  add_histogram()
+
+plot_ly(lotr, x = ~Race, color = ~Film)%>% #it is really a barplot instead of a hist
+  add_histogram()
+
+## number of diamonds by cut and clarity (n)
+lotr_count <- count(lotr, Race, Film)
+## number of diamonds by cut (nn)
+lotr_prop <- left_join(lotr_count, count(lotr_count, Race, wt = n), #wt = weight
+                       by = 'Race')
+
+lotr_prop %>%
+  mutate(prop = n.x / n.y) %>%
+  plot_ly(x = ~Race, y = ~prop, color = ~Film, width = 900) %>% #if y is specified, add_bars instead of hist
+  add_bars() %>%
+  layout(barmode = "stack")
+
+plot_ly(gss_cat, x = ~tvhours)%>%
+  add_histogram()
+
+gss_count <- count(gss_cat, marital, partyid)
+gss_prop <- left_join(gss_count, count(gss_count, marital, wt = n), by = 'marital')
+gss_prop%>%
+  mutate(
+    prop = n.x/n.y)%>%
+  plot_ly(x = ~marital, y = ~prop, color = ~partyid, width = 900)%>%
+  add_bars()%>%
+  layout(barmode = 'stack')
+
+plot_ly(midwest, x = ~popdensity, y = ~percollege)%>%
+  add_markers()
+
+plot_ly(midwest, x = ~popdensity, y = ~percollege)%>%
+  add_markers(symbol = ~state)
+
+plot_ly(midwest, x = ~popdensity, y = ~percollege)%>%
+  add_markers(color = ~state)
+
+storms_yearly <- storms%>%
+  group_by(year)%>%
+  summarise(num = length(unique(name)))
+
+plot_ly(storms_yearly, x = ~year, y = ~num)%>%
+  add_lines()
+
+plot_ly(gss_cat, x = ~age, y = ~tvhours)%>%
+  add_markers()
+
+avg_tv <- gss_cat%>%
+  group_by(year, marital)%>%
+  mutate(
+    avg_tv = mean(tvhours, na.rm = T)
+  )%>%
+  select(year, marital, avg_tv)
+
+plot_ly(avg_tv, x = ~year, y = ~avg_tv)%>%
+  add_lines(color = ~marital)
+```
+
+## Creating Subplots with plotly
+
+```{r}
+# Manually create multiples plotly figures
+
+storm_summary <- storms%>%
+  group_by(year)%>%
+  summarise(
+    max_wind = max(wind),
+    min_pressure = min(pressure))
+p1 <- plot_ly(storm_summary, x = ~year, y = ~max_wind)%>%
+  add_lines(name = 'Max wind')
+p2 <- plot_ly(storm_summary, x = ~year, y = ~min_pressure)%>%
+  add_lines(name = 'Min pressure')
+subplot(p1, p2)
+
+#function to data list
+
+one_plot <- function(d){
+  plot_ly(d, x = ~Words)%>%
+    add_histogram()%>%
+    add_annotations(
+      ~unique(Film), x = .5, y = 1,
+      xref = 'paper', yref = 'paper', showarrow = F
+    )
+}
+
+one_plot(lotr)
+
+lotr%>%
+  group_split(Film)%>% #it breaks the data point into smaller units that represent each unique element of the variable
+  lapply(one_plot)%>% #it takes a list as an input and apply the given function (to each film)
+  subplot(nrows = 1, shareX = T, titleX = F)%>%
+  hide_legend()
+
+lotr_hist <- ggplot(lotr, aes(Words, fill = Film))+
+  geom_histogram(bins = 20)+
+  facet_wrap(~Film)+
+  theme_bw()+
+  theme(legend.position = 'none')
+
+ggplotly(lotr_hist)
+```
+
+## Other Interactive Frameworks
+
+```{r}
+library(leaflet) #for maps
+
+storms%>%
+  filter(name %in% c('Ike', 'Katrina'), year > 2000)%>%
+  leaflet()%>%
+  addTiles()%>% #specifi tiles
+  addCircles(lng = ~long, lat = ~lat, popup = ~name, weight = 1, radius = ~wind*1000)
+
+library(gapminder)
+
+ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country))+
+  geom_point(alpha = .7, show.legend = F)+
+  scale_color_manual(values = country_colors)+
+  scale_size(range = c(2, 12))+
+  scale_x_log10()+
+  facet_wrap(~continent)
+
+library(gganimate)
+library(gifski)
+
+anim <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country))+
+  geom_point(alpha = .7, show.legend = F)+
+  scale_colour_manual(values = country_colors)+
+  scale_size(range = c(2, 12))+
+  scale_x_log10()+
+  facet_wrap(~continent)+
+  #here comes the gganimate specific bis
+  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'Life Expectancy')+
+  transition_time(year)+
+  ease_aes('linear')
+
+anim_save(filename = '', animation = anim)
+```
+
