@@ -74,7 +74,7 @@ The two models do not have significant estimates, therefore, we will prefer the 
 
 4. Check assumptions for the models from #3. Does there appear to be problems with meeting statistical assumptions? Provide rationale for why or why not.
 
-```{r}
+```{r, eval=FALSE}
 plot(model1)
 ```
 
@@ -82,7 +82,7 @@ Exploring model1 assumptions, none of these are met. The model residuals are not
 
 The situation is not different for model2. It also has problems with the assumptions, especially with homoscedasticity. In this plot, there is a trend in the residuals as the values of the explanatory variables increase.
 
-```{r, include=TRUE, echo=FALSE, warning=FALSE}
+```{r, include=TRUE, echo=FALSE, warning=FALSE, eval=FALSE}
 plot(model2, 3)
 ```
 
@@ -96,9 +96,7 @@ Once burn_days has been added to the model, the results do not change significan
 
 6. Finally, create a graphic that summarizes the results from your final model that you feel fits the data the best (i.e. this could be the model from #4 or #7). Discuss why you picked this model and describe why this figure does a good job of showing the takeaway message.
 
-```{r}
-names(d1)
-
+```{r, eval=FALSE}
 ggplot(d1, aes(as.factor(month), incident_acres_burned))+
   geom_point(color = 'red')+
   facet_wrap(~year)+
@@ -112,6 +110,16 @@ It appears that the acres burned and the months and years are not related.
 ## Part 2: Turning Tables into Graphics with R
 
 1. Find a published table showing descriptive or inferential statistic results. Provide a copy of the table (a screen shot is fine for this purpose).
+
+```{r}
+image <- "https://github.com/Bladimir-PF/PSQF-6250-Computer-Packages-/blob/GLM/Vegetables%20and%20Fruits.PNG"
+download.file(image, 'image.png')
+file.show(image)
+```
+
+
+
+
 
 2. Turn the table from #1 above into a publication quality graphic using R. Ensure that this graphic conveys the same purpose as the original table. 1 pt
 
