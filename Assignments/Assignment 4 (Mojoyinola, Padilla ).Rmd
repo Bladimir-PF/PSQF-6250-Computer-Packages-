@@ -38,28 +38,23 @@ d1 <- d1 %>%
          year = year(date_incident),
          month = month(date_incident),
          burn_days = as.numeric(difftime(date_update, date_incident, units = c("days"))))
-
 ```
 
-
-2. Are there any data points that are extreme values or outliers that you feel should be removed from this analysis? Discuss briefly, why you feel these values may impact the analysis and should therefore be removed. Be as specific as you can why any values should or should not be removed. If you identify data that are suspect, remove them from further analysis (i.e. use filter to remove the values). 
+2. Are there any data points that are extreme values or outliers that you feel should be removed from this analysis? Discuss briefly, why you feel these values may impact the analysis and should therefore be removed. Be as specific as you can why any values should or should not be removed. If you identify data that are suspect, remove them from further analysis (i.e. use filter to remove the values).
 
 ```{r}
 summary(d1)
 
 d1 <- d1 %>%filter(burn_days >= 0)
-
 ```
 
-After exploring the dataset, the only variable with an anomaly is burn days with negative values, this represent the duration of burn in days and we do not expect to have values below zero. 
-
+Almost all variables have values within the expected boundaries, excepting by burn_days, the variable we created to represents the length of time a fire burned. In this variable, some of the values were negative, so we decided to filter the dataset and allowing values at or above 0 (which is more meaningful that the previous version with values below 0).
 
 3. Fit two competing models to attempt to answer the 1st and 2nd research questions. Summarize briefly the results from the models with particular attention to answering the research question so that non-statistics/data science individuals could use the answer for their planning or decision making process. Note, consider carefully the best approach on how to include month and year in your models (i.e., continuous vs factor type variables). 1 pt
 
 ```{r}
 model1 <- lm(incident_acres_burned ~ I(year-min(year)), data = d1)
 summary(model1)
-
 ```
 
 Based on model1, there is no statistically significant evidence that the number of acres burned has increased for fires in more recent years. In other words, year is not a useful variable to make decision about how to predict or estimate the amount of acres burned in a fire incident. 
@@ -67,12 +62,11 @@ Based on model1, there is no statistically significant evidence that the number 
 ```{r}
 model2 <- lm(incident_acres_burned ~ year*factor(month), data = d1)
 summary(model2)
-
 ```
 
 The addition of month as a factor variable to the model explains some variation in the number of acres burned but this is not really helpful, especially when we compare the R-square of both models: model1(0.0003079), model2(0.01739) and the adjusted R-squared of model2 (0.003827) is considered.
 
-In summary, neither year nor month are relevant variables in order to estimate the number of acres burned in a fire incident.
+In summary, neither year nor month are relevant variables in order to estimate the number of acres burned in a fire incident. We should continue searching for other factors involved.
 
 3.1 Which model fits best or do you feel is the best model?
 
@@ -98,11 +92,22 @@ plot(model2, 3)
 model3 <- lm(incident_acres_burned ~ year+burn_days+factor(month), data = d1)
 summary(model3)
 ```
+Once burn_days has been added to the model, the results do not change significantly. Based on the R-squared and Adjusted R-squared, model3 performs even worst than the previous versions. In other words, analyzing the year, month and days when a fired incident has occurred, we have not found nothing statistically significant to estimate the amount of acres burned. Thus, the challenge is to founding additional information which helps to answer our questions. 
 
+6. Finally, create a graphic that summarizes the results from your final model that you feel fits the data the best (i.e. this could be the model from #4 or #7). Discuss why you picked this model and describe why this figure does a good job of showing the takeaway message.
 
-Note, please do not include the output from the summary() function in your answer, instead pull out relevant information from the output to include in your description.
+```{r}
+names(d1)
 
-6. Finally, create a graphic that summarizes the results from your final model that you feel fits the data the best (i.e. this could be the model from #4 or #7). Discuss why you picked this model and describe why this figure does a good job of showing the takeaway message. 1 pt
+ggplot(d1, aes(as.factor(month), incident_acres_burned))+
+  geom_point(color = 'red')+
+  facet_wrap(~year)+
+  labs(x = 'Month', y = 'Acres burned')+
+  theme_bw()
+```
+
+We have chosen the second model because it is simple and clear, and also because the third models is more complex and it does not add nothing meaningful to our analyses. We have also divided the graphs based on the different years when the fires occurred to show the relation between the amount of acres burned and months. In the different facets we can see that there is neither a clear nor a slight pattern in the data.
+It appears that the acres burned and the months and years are not related.
 
 ## Part 2: Turning Tables into Graphics with R
 
