@@ -111,17 +111,31 @@ It appears that the acres burned and the months and years are not related.
 
 1. Find a published table showing descriptive or inferential statistic results. Provide a copy of the table (a screen shot is fine for this purpose).
 
-```{r}
-image <- "https://github.com/Bladimir-PF/PSQF-6250-Computer-Packages-/blob/GLM/Vegetables%20and%20Fruits.PNG"
-download.file(image, 'image.png')
-file.show(image)
-```
-
-
-
-
+Images are similar ![wsdasd](plot4.jpg)
 
 2. Turn the table from #1 above into a publication quality graphic using R. Ensure that this graphic conveys the same purpose as the original table. 1 pt
+
+```{r}
+veg <- data.frame(cbind(
+  country <- c('U.S', 'Denmark', 'Taiwan', 'Japan', 'Italy', 'Thailand', 'Others'),
+  veg_2012_13 <- c(524,791,9,454,1064,719,691),
+  veg_2013_14 <- c(528,860,9,394,1446,1016,401),
+  veg_2014_15 <- c(338,1378,102,353,2138,1133,346),
+  fruit_2012_13 <- c(2298,383,91,423,0,0,147),
+  fruit_2013_14 <- c(4191,365,88,374,0,0,157),
+  fruit_2014_15 <- c(6422,409,169,225,0,0,440)))
+colnames(veg) <- c('country', 'veg_2012_13', 'veg_2013_14', 'veg_2014_15', 'fruit_2012_13', 'fruit_2013_14', 'fruit_2014_15')
+
+veg_long <- veg %>%
+  pivot_longer(veg_2012_13:fruit_2014_15, names_to = 'veg_fruit', values_to = 'imp')%>%
+  separate(veg_fruit, into = c('type', 'year', 'month'), sep = '_')
+veg_long
+
+ggplot(veg_long, aes(country, imp))+
+  geom_point(aes(color = type, shape = month))+
+  facet_wrap(~year)
+```
+
 
 3. Create a different from the figure created in #3 above, and make an interactive graphic that attempts to convey the same message as the original table. Note, this figure should be an entirely different figure from that in #3. For example, if you created a bar chart in #3, create something other than a bar chart for this question. 1 pt
 
