@@ -17,6 +17,9 @@ knitr::opts_chunk$set(include = FALSE)
 library(tidyverse)
 library(stringr)
 library(lubridate)
+library(tidyverse)
+library(kableExtra)
+library(plotly)
 ```
 
 ## Part 1: Inferential Statistics with R
@@ -48,7 +51,7 @@ summary(d1)
 d1 <- d1 %>%filter(burn_days >= 0)
 ```
 
-Almost all variables have values within the expected boundaries, excepting by burn_days, the variable we created to represents the length of time a fire burned. In this variable, some of the values were negative, so we decided to filter the dataset and allowing values at or above 0 (which is more meaningful that the previous version with values below 0).
+Almost all variables have values within the expected boundaries, except burn_days- the variable we created to represents the length of time a fire burned. In this variable, some of the values were negative, so we decided to filter the dataset and allowing only values at or above 0 (which is more meaningful that the previous version with values below 0).
 
 3. Fit two competing models to attempt to answer the 1st and 2nd research questions. Summarize briefly the results from the models with particular attention to answering the research question so that non-statistics/data science individuals could use the answer for their planning or decision making process. Note, consider carefully the best approach on how to include month and year in your models (i.e., continuous vs factor type variables). 1 pt
 
@@ -74,15 +77,15 @@ The two models do not have significant estimates, therefore, we will prefer the 
 
 4. Check assumptions for the models from #3. Does there appear to be problems with meeting statistical assumptions? Provide rationale for why or why not.
 
-```{r, eval=FALSE}
+```{r}
 plot(model1)
 ```
 
 Exploring model1 assumptions, none of these are met. The model residuals are not normally distributed, the variance looks like heterogeneous, and it has some leverage points that could be affecting the model performance.
 
-The situation is not different for model2. It also has problems with the assumptions, especially with homoscedasticity. In this plot, there is a trend in the residuals as the values of the explanatory variables increase.
+The situation is not different for model2. It also has problems with the assumptions, especially with homoscedasticity, see graph below. In this plot, there is a trend in the residuals as the values of the explanatory variables increase.
 
-```{r, include=TRUE, echo=FALSE, warning=FALSE, eval=FALSE}
+```{r plot, include=TRUE, echo=FALSE, warning=FALSE}
 plot(model2, 3)
 ```
 
@@ -92,53 +95,129 @@ plot(model2, 3)
 model3 <- lm(incident_acres_burned ~ year+burn_days+factor(month), data = d1)
 summary(model3)
 ```
-Once burn_days has been added to the model, the results do not change significantly. Based on the R-squared and Adjusted R-squared, model3 performs even worst than the previous versions. In other words, analyzing the year, month and days when a fired incident has occurred, we have not found nothing statistically significant to estimate the amount of acres burned. Thus, the challenge is to founding additional information which helps to answer our questions. 
+
+Once burn_days has been added to the model, the results do not change significantly. Based on the R-squared and Adjusted R-squared, model3 performs even worst than the previous versions. In other words, analyzing the year, month and days when a fired incident has occurred, we have not found nothing statistically significant to estimate the amount of acres burned. Thus, the challenge is to find additional information which helps to answer our questions. 
 
 6. Finally, create a graphic that summarizes the results from your final model that you feel fits the data the best (i.e. this could be the model from #4 or #7). Discuss why you picked this model and describe why this figure does a good job of showing the takeaway message.
 
-```{r, eval=FALSE}
+```{r,include=TRUE}
 ggplot(d1, aes(as.factor(month), incident_acres_burned))+
   geom_point(color = 'red')+
   facet_wrap(~year)+
   labs(x = 'Month', y = 'Acres burned')+
+  scale_y_continuous(labels = scales::comma)+
   theme_bw()
 ```
 
-We have chosen the second model because it is simple and clear, and also because the third models is more complex and it does not add nothing meaningful to our analyses. We have also divided the graphs based on the different years when the fires occurred to show the relation between the amount of acres burned and months. In the different facets we can see that there is neither a clear nor a slight pattern in the data.
+We have chosen the second model because it is simple and clear, and also because the third model is more complex and does not add nothing meaningful to our analysis. We have also divided the graphs based on the different years when the fires occurred to show the relation between the amount of acres burned and months. In the different facets we can see that there is neither a clear nor a slight pattern in the data.
 It appears that the acres burned and the months and years are not related.
 
 ## Part 2: Turning Tables into Graphics with R
 
 1. Find a published table showing descriptive or inferential statistic results. Provide a copy of the table (a screen shot is fine for this purpose).
 
-Images are similar ![wsdasd](plot4.jpg)
+The table below was extracted from **(Azam and Shafique, 2018)**
 
-2. Turn the table from #1 above into a publication quality graphic using R. Ensure that this graphic conveys the same purpose as the original table. 1 pt
+![](https://github.com/Bladimir-PF/PSQF-6250-Computer-Packages-/blob/GLM/plot4.JPG?raw=TRUE)\
+\
+
+2. Turn the table from #1 above into a publication quality graphic using R. Ensure that this graphic conveys the same purpose as the original table.
 
 ```{r}
 veg <- data.frame(cbind(
-  country <- c('U.S', 'Denmark', 'Taiwan', 'Japan', 'Italy', 'Thailand', 'Others'),
+  destination <- c('U.S', 'Denmark', 'Taiwan', 'Japan', 'Italy', 'Thailand', 'Others'),
   veg_2012_13 <- c(524,791,9,454,1064,719,691),
   veg_2013_14 <- c(528,860,9,394,1446,1016,401),
   veg_2014_15 <- c(338,1378,102,353,2138,1133,346),
   fruit_2012_13 <- c(2298,383,91,423,0,0,147),
   fruit_2013_14 <- c(4191,365,88,374,0,0,157),
   fruit_2014_15 <- c(6422,409,169,225,0,0,440)))
-colnames(veg) <- c('country', 'veg_2012_13', 'veg_2013_14', 'veg_2014_15', 'fruit_2012_13', 'fruit_2013_14', 'fruit_2014_15')
+colnames(veg) <- c('destination', 'Vegetables_2012_13', 'Vegetables_2013_14', 'Vegetables_2014_15', 'Fruits_2012_13', 'Fruits_2013_14', 'Fruits_2014_15')
 
 veg_long <- veg %>%
-  pivot_longer(veg_2012_13:fruit_2014_15, names_to = 'veg_fruit', values_to = 'imp')%>%
-  separate(veg_fruit, into = c('type', 'year', 'month'), sep = '_')
+  pivot_longer(Vegetables_2012_13:Fruits_2014_15, names_to = 'veg_fruit', values_to = 'imp')%>%
+  separate(veg_fruit, into = c('type', 'year'), sep = '_')
 veg_long
 
-ggplot(veg_long, aes(country, imp))+
-  geom_point(aes(color = type, shape = month))+
-  facet_wrap(~year)
+veg_long$year = as.numeric(veg_long$year)
+veg_long$imp = as.numeric(veg_long$imp)
+```
+
+```{r, include=TRUE, echo=FALSE}
+ggplot(veg_long, aes(destination, imp))+
+  geom_point(aes(color = type), size = 2)+
+  labs(x = 'Destination', y = 'Imports (N)', color = 'Product')+
+  coord_flip()+
+  facet_grid(year~.)+
+  theme_bw()
+```
+
+3. Create a different from the figure created in #3 above, and make an interactive graphic that attempts to convey the same message as the original table. Note, this figure should be an entirely different figure from that in #3. For example, if you created a bar chart in #3, create something other than a bar chart for this question.
+
+```{r}
+veg_bars <- veg_long%>%
+  group_by(year, destination, type)%>%
+  summarise(
+    tot = sum(imp)
+  )
+
+veg_wide <- veg_bars%>%
+  pivot_wider(names_from = type, values_from = tot)
+
+veg_wide <- veg_wide%>%
+  mutate(
+    prop_f = Fruits/(Fruits+Vegetables),
+    prop_v = (1 - prop_f)
+  )
+
+veg_plot1 <- veg_wide%>%
+  pivot_longer(Fruits:Vegetables , names_to = 'type', values_to = 'imp')
+veg_plot2 <- veg_wide%>%
+  pivot_longer(prop_f:prop_v , names_to = 'props', values_to = 'prop')
+
+veg_plot <- veg_plot1%>%
+  select(-prop_f, -prop_v)
+veg_plot$prop <- veg_plot2$prop
+```
+
+```{r, include=TRUE, echo=FALSE}
+p4 <- veg_plot%>%
+  ggplot(., aes(fill=type, y=prop, x=destination)) + 
+  geom_bar(position="fill", stat="identity")+
+  facet_grid(year~.)+
+  labs(x = 'Destination', y = 'Imports (%)', title = 'Fruits and Vegetables imported')+
+  scale_fill_discrete(name = "Type of import")+
+  theme_bw()
+
+ggplotly(p4)
+```
+
+4. Briefly discuss whether you feel the graphs convey the message better or worse than the original table. Use specific examples from the table/graph and recommendations from the article in your discussion. Which figure do you feel does the best job in sharing the original purpose of the table? Be specific in your discussion.
+
+We believe that both charts present the information in the table in a clearer and more concise manner. The graphical representation has the advantage of conveying a message quickly and does not require people to compare numbers.
+
+Based on the recommendations from Gelman et. al 2002 to identify key comparison of interest and display these comparisons in small individual plots, the graphs we have above clearly show the comparison of fruits and vegetables importation by countries and how it varies from year to year. For example looking at second graph, one can immediately note the lack of fruits importation in both Italy and Thailand.
+
+In particular, the second figure presents the imports of fruits and vegetables from each country according to proportions, which makes it easy to understand which of these products is most needed by the countries. In addition, it is possible to analyze the variations in the import of products over the years, which allows simple comparisons to be made. 
+
+5. Take the data from the original table, to do this you may need to create an Excel file or use the function data.frame() to import the data from the original table. Use the kable() function and kableExtra package to create a reproducible table that looks as close as possible to the original table.
+
+
+```{r, include = TRUE}
+kable(veg, 
+      col.names = c('Country', '2012/13', '2013/14', '2014/15','2012/13', '2013/14', '2014/15'),
+      align = 'lllllll',
+      caption = '<b>Table 4. Vegetables & Fruits in Volume and Major Destinations (MT)</b>', format = 'html')%>%
+  kable_styling(bootstrap_options = 'bordered', full_width = F, position = 'center')%>%
+  #row_spec(0, bold = T)%>%
+  #row_spec(1, bold = F)%>%
+  add_header_above(c('Vegetables' = 4, 'Fruits' = 3))
+
 ```
 
 
-3. Create a different from the figure created in #3 above, and make an interactive graphic that attempts to convey the same message as the original table. Note, this figure should be an entirely different figure from that in #3. For example, if you created a bar chart in #3, create something other than a bar chart for this question. 1 pt
 
-4. Briefly discuss whether you feel the graphs convey the message better or worse than the original table. Use specific examples from the table/graph and recommendations from the article in your discussion. Which figure do you feel does the best job in sharing the original purpose of the table? Be specific in your discussion. 1 pt
 
-5. Take the data from the original table, to do this you may need to create an Excel file or use the function data.frame() to import the data from the original table. Use the kable() function and kableExtra package to create a reproducible table that looks as close as possible to the original table. 1 pt
+
+
+
