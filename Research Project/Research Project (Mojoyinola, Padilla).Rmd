@@ -1,0 +1,67 @@
+---
+title: "Exploring the probabilities of being admitted to university in Chile based on socioeconomic and academic attributes"
+author: "Mubarak Mojoyinola, Geraldo Padilla"
+date: "22-04-2022"
+output:
+  html_document:
+    theme: simplex
+    highlight: textmate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, messages = F}
+library(tidyverse)
+library(readxl)
+```
+
+
+## Description of data
+
+```{r}
+enrolled <- read.csv2('C:/Users/Lenovo/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv')
+```
+
+```{r}
+d1 <- enrolled
+d1 <- d1%>%
+  mutate(MRUN = ï..MRUN)
+d1$ï..MRUN <- NULL
+
+d1 <- d1%>%
+  select(MRUN,COD_SEXO, RBD, CODIGO_ENS, RAMA_EDUCACIONAL, DEPENDENCIA, PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)
+
+d2 <- d1%>%
+  filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS = 310, 410, 510, 610)
+
+table(d1$CODIGO_ENS)
+
+ 
+
+#Enseñanza Media H-C niños y jóvenes
+#Enseñanza Media Técnico –Profesional Comercial Niños
+#Enseñanza Media T-P Industrial Niños
+#Enseñanza Media T-P Técnica Niños
+```
+
+The data used corresponds to the University Admission process in Chile during 2018. The dataset includes:
+- 4 background variables – gender, family income, parents’ education, and type of high school.
+- 3 academic performance variables – GPA, PSU Math, and PSU Language
+- 1 admission status variable – being enrolled or not in one university.
+
+## Research questions
+
+1. What is the contribution of academic performance and socioeconomic background variables to the probability of being admitted at the university in Chile?
+
+1.1 What is the single contribution of each predictor (academic performance and socioeconomic background)?
+
+1.2 Is there any difference in probability of being admitted at the university according to socioeconomic status among students?
+
+## Statistical analyses
+
+Binary Logistic Regression. In addition to analyze the estimated probabilities, we will also explore the effect size of the predictors via Odds Ratios.
+
+Rationale for the model proposed
+To answer our research questions, we need a classification approach. Due to the binary coded dependent variable (0 = not admitted, 1 = admitted), a binary logistic regression model is appropriate to avoid some of the problems of using a multiple linear regression.
