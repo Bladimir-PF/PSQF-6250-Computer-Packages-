@@ -13,10 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, messages = F}
-library(tidyverse)
-library(readxl)
+library(easypackages)
+libraries('tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl')
 ```
-
 
 ## Description of data
 
@@ -31,19 +30,39 @@ d1 <- d1%>%
 d1$ï..MRUN <- NULL
 
 d1 <- d1%>%
-  select(MRUN,COD_SEXO, RBD, CODIGO_ENS, RAMA_EDUCACIONAL, DEPENDENCIA, PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)
+  dplyr::select(MRUN, COD_SEXO, RBD, CODIGO_ENS, RAMA_EDUCACIONAL,
+         DEPENDENCIA, PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING,
+         CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)
 
 d2 <- d1%>%
-  filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS = 310, 410, 510, 610)
-
-table(d1$CODIGO_ENS)
-
- 
+  dplyr::filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS %in% c('310', '410', '510', '610'))
 
 #Enseñanza Media H-C niños y jóvenes
 #Enseñanza Media Técnico –Profesional Comercial Niños
 #Enseñanza Media T-P Industrial Niños
 #Enseñanza Media T-P Técnica Niños
+
+d2 <- d2%>%
+  dplyr::select(MRUN, COD_SEXO, RBD, RAMA_EDUCACIONAL, DEPENDENCIA,
+  PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL)
+
+table(d2$COD_SEXO)
+table(d2$gender)
+table(d2$RAMA_EDUCACIONAL)
+table(d2$type_hs)
+table(d2$DEPENDENCIA)
+table(d2$sector)
+
+d2 <- d2%>%
+  mutate(
+    gender = ifelse(COD_SEXO == 2, 1,0),
+    type_hs = ifelse(RAMA_EDUCACIONAL == 'H1', 0,1),
+    sector = ifelse(DEPENDENCIA == 3|DEPENDENCIA == 4, 1,0))
+
+d2 <- d2%>%
+  dplyr::select(MRUN,RBD,PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL,gender, type_hs,sector)
+
+colnames(d2) <- c('MRUN', 'RBD', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs','sector')
 ```
 
 The data used corresponds to the University Admission process in Chile during 2018. The dataset includes:
