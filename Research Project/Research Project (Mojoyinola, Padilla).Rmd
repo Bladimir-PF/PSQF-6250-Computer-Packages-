@@ -1,68 +1,125 @@
 ---
-title: "Exploring the probabilities of being admitted to university in Chile based on socioeconomic and academic attributes"
-author: "Mubarak Mojoyinola, Geraldo Padilla"
-date: "22-04-2022"
+title: "<center> <h1>Exploring the probabilities of being admitted to university in Chile based on socioeconomic and academic attributes</h1> </center>"
+author:
+- name: Mubarak Mojoyinola and Geraldo Padilla
+  affiliation: The University of Iowa
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
   html_document:
     theme: simplex
     highlight: textmate
+  word_document: default
+tags:
+- PSU
+- Admission tests
+abstract: |
+  This project analyzes the PSU Mathematics items from an IRT perspective. Different analytic tools were applied to achieve the intended purposes: calibrations (3PL and 2PL models), model fit assessment, equating, information functions and relative efficiency.
 ---
 
+<style type="text/css">
+body{
+  font-family: Arial;
+  font-size: 12pt;
+}
+</style>
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(include = F)
 ```
 
 ```{r, messages = F}
 library(easypackages)
-libraries('tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl')
+libraries('tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl', 'Lahman')
 ```
 
 ## Description of data
 
 ```{r}
-enrolled <- read.csv2('C:/Users/Lenovo/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv')
+enrolled <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv")
 ```
 
 ```{r}
-d1 <- enrolled
-d1 <- d1%>%
-  mutate(MRUN = ï..MRUN)
-d1$ï..MRUN <- NULL
-
-d1 <- d1%>%
+a <- enrolled%>%
   dplyr::select(MRUN, COD_SEXO, RBD, CODIGO_ENS, RAMA_EDUCACIONAL,
          DEPENDENCIA, PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING,
-         CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)
+         CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)%>%
+  dplyr::filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS %in% c('310', '410', '510', '610'))%>%
+  dplyr::select(MRUN, COD_SEXO, RBD, RAMA_EDUCACIONAL, DEPENDENCIA,
+  PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL)%>%
+  mutate(
+    gender = ifelse(COD_SEXO == 2, 1,0),
+    type_hs = ifelse(RAMA_EDUCACIONAL == 'H1', 0,1),
+    sector = ifelse(DEPENDENCIA == 3|DEPENDENCIA == 4, 1,0))%>%
+  dplyr::select(MRUN,RBD,PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL,gender, type_hs,sector)
 
-d2 <- d1%>%
-  dplyr::filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS %in% c('310', '410', '510', '610'))
+colnames(a) <- c('MRUN', 'RBD', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs','sector')
 
 #Enseñanza Media H-C niños y jóvenes
 #Enseñanza Media Técnico –Profesional Comercial Niños
 #Enseñanza Media T-P Industrial Niños
 #Enseñanza Media T-P Técnica Niños
+```
 
-d2 <- d2%>%
-  dplyr::select(MRUN, COD_SEXO, RBD, RAMA_EDUCACIONAL, DEPENDENCIA,
-  PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL)
+```{r}
+SE_info <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/B_Socioeconomico/B_SOCIOECONOMICO_DOMICILIO_PDT_2021_PUB_MRUN.csv")
+```
 
-table(d2$COD_SEXO)
-table(d2$gender)
-table(d2$RAMA_EDUCACIONAL)
-table(d2$type_hs)
-table(d2$DEPENDENCIA)
-table(d2$sector)
+```{r}
+b <- SE_info%>%
+  dplyr::select(MRUN, INGRESO_PERCAPITA_GRUPO_FA, EDUCACION_MADRE, EDUCACION_PADRE)
+a_b <- left_join(a, b, by = 'MRUN')
+```
 
-d2 <- d2%>%
+
+```{r}
+a_b <- a_b%>%
   mutate(
-    gender = ifelse(COD_SEXO == 2, 1,0),
-    type_hs = ifelse(RAMA_EDUCACIONAL == 'H1', 0,1),
-    sector = ifelse(DEPENDENCIA == 3|DEPENDENCIA == 4, 1,0))
+    inc = INGRESO_PERCAPITA_GRUPO_FA,
+    ed_m = EDUCACION_MADRE,
+    ed_d = EDUCACION_PADRE,
+    ed_dad = ifelse(ed_d >= 0 & ed_d <=5, 0,
+                    ifelse(ed_d >= 6 & ed_d <= 9, 1,
+                           ifelse(ed_d == 13, NA, 2))),
+    ed_mom = ifelse(ed_m >= 1 & ed_m <= 5, 0,
+                    ifelse(ed_m >= 6 & ed_m <= 9, 1,
+                           ifelse(ed_m == 13, NA, 2))),
+    income = ifelse(inc == 1|inc == 2, 'Q1',
+                    ifelse(inc == 3|inc == 4, 'Q2',
+                           ifelse(inc == 5|inc == 6, 'Q3',
+                                  ifelse(inc == 7|inc == 8, 'Q4','Q5')))))%>%
+  dplyr::select('MRUN', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs', 'sector', 'ed_dad', 'ed_mom', 'income')
+```
 
-d2 <- d2%>%
-  dplyr::select(MRUN,RBD,PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL,gender, type_hs,sector)
+```{r}
+app <-read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/C_Postulacion_Seleccion/C_POSTULANTES_SELECCION_PDT_2021_PUB_MRUN.csv")
+```
 
-colnames(d2) <- c('MRUN', 'RBD', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs','sector')
+```{r}
+c <- app%>%
+  dplyr::select(MRUN, SITUACION_POSTULANTE)%>%
+  mutate(
+    appl = ifelse(SITUACION_POSTULANTE == 'P', 1,0))%>%
+  dplyr::select(MRUN, appl)
+abc <- left_join(a_b, c, by = 'MRUN')
+```
+
+```{r}
+admission <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/D_Matricula_MRUN/D_MATRICULA_PDT__2021_PUB_MRUN.csv")
+```
+
+```{r}
+d <- admission%>%
+  dplyr::select(MRUN, VIA_ADMISION)%>%
+  mutate(
+    admitted = ifelse(VIA_ADMISION > 0, 1, 0))%>%
+  filter(!is.na(MRUN))%>%
+  dplyr::select(MRUN, admitted)%>%
+  unique()
+abcd <- left_join(abc, d, by = 'MRUN')
+```
+
+```{r}
+colnames(abcd)
 ```
 
 The data used corresponds to the University Admission process in Chile during 2018. The dataset includes:
