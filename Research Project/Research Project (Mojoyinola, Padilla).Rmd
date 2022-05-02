@@ -13,7 +13,7 @@ tags:
 - PSU
 - Admission tests
 abstract: |
-  This project analyzes the PSU Mathematics items from an IRT perspective. Different analytic tools were applied to achieve the intended purposes: calibrations (3PL and 2PL models), model fit assessment, equating, information functions and relative efficiency.
+  This project analyzes the probabilities of being admitted to university in Chile in the 2021 admission process. Admission is based on PSU results and other 2 criteria associated with academic performance during high school (GPA and Ranking), however, there could be  other 'non-academic' criteria interfering in the opportunities to being admitted (socioeconomic background).
 ---
 
 <style type="text/css">
@@ -35,11 +35,11 @@ libraries('tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl
 ## Description of data
 
 ```{r}
-enrolled <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv")
+registration <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv")
 ```
 
 ```{r}
-a <- enrolled%>%
+a <- registration%>%
   dplyr::select(MRUN, COD_SEXO, RBD, CODIGO_ENS, RAMA_EDUCACIONAL,
          DEPENDENCIA, PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING,
          CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)%>%
@@ -61,18 +61,18 @@ colnames(a) <- c('MRUN', 'RBD', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 't
 ```
 
 ```{r}
-SE_info <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/B_Socioeconomico/B_SOCIOECONOMICO_DOMICILIO_PDT_2021_PUB_MRUN.csv")
+socioeconomic <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/B_Socioeconomico/B_SOCIOECONOMICO_DOMICILIO_PDT_2021_PUB_MRUN.csv")
 ```
 
 ```{r}
-b <- SE_info%>%
+b <- socioeconomic%>%
   dplyr::select(MRUN, INGRESO_PERCAPITA_GRUPO_FA, EDUCACION_MADRE, EDUCACION_PADRE)
-a_b <- left_join(a, b, by = 'MRUN')
+ab <- left_join(a, b, by = 'MRUN')
 ```
 
 
 ```{r}
-a_b <- a_b%>%
+ab <- ab%>%
   mutate(
     inc = INGRESO_PERCAPITA_GRUPO_FA,
     ed_m = EDUCACION_MADRE,
@@ -91,16 +91,16 @@ a_b <- a_b%>%
 ```
 
 ```{r}
-app <-read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/C_Postulacion_Seleccion/C_POSTULANTES_SELECCION_PDT_2021_PUB_MRUN.csv")
+application <-read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/C_Postulacion_Seleccion/C_POSTULANTES_SELECCION_PDT_2021_PUB_MRUN.csv")
 ```
 
 ```{r}
-c <- app%>%
+c <- application%>%
   dplyr::select(MRUN, SITUACION_POSTULANTE)%>%
   mutate(
     appl = ifelse(SITUACION_POSTULANTE == 'P', 1,0))%>%
   dplyr::select(MRUN, appl)
-abc <- left_join(a_b, c, by = 'MRUN')
+abc <- left_join(ab, c, by = 'MRUN')
 ```
 
 ```{r}
@@ -119,7 +119,26 @@ abcd <- left_join(abc, d, by = 'MRUN')
 ```
 
 ```{r}
-colnames(abcd)
+colnames(abcd) <- c('ID', 'GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_DAD', 'ED_MOM', 'INCOME', 'APPLY', 'ADM')
+
+abcd <- abcd%>%
+  mutate(
+    NEM = ifelse(NEM == 0, NA, NEM),
+    RKG = ifelse(RKG == 0, NA, RKG),
+    LEN = ifelse(LEN == 0, NA, LEN),
+    MATH = ifelse(MATH == 0, NA, MATH),
+    dad_miss = ifelse(is.na(ED_DAD), ED_MOM, ED_DAD),
+    mom_miss = ifelse(is.na(ED_MOM), ED_DAD, ED_MOM),
+    ED_PARENTS = ifelse(dad_miss >= mom_miss, dad_miss, mom_miss),
+    Q2 = ifelse(INCOME == 'Q2', 1,0),
+    Q3 = ifelse(INCOME == 'Q3', 1,0),
+    Q4 = ifelse(INCOME == 'Q4', 1,0),
+    Q5 = ifelse(INCOME == 'Q5', 1,0),
+    APPLY = ifelse(is.na(APPLY), 0, APPLY),
+    ADM = ifelse(is.na(ADM), 0, 1))
+
+data <- abcd%>%
+  dplyr::select('GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'Q2', 'Q3', 'Q4', 'Q5', 'APPLY', 'ADM')
 ```
 
 The data used corresponds to the University Admission process in Chile during 2018. The dataset includes:
