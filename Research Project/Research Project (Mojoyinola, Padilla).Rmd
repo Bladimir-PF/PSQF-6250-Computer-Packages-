@@ -9,6 +9,8 @@ output:
     theme: simplex
     highlight: textmate
   word_document: default
+bibliography: references.bib
+csl: apa.csl
 tags:
 - PSU
 - Admission tests
@@ -29,13 +31,33 @@ knitr::opts_chunk$set(include = F)
 
 ```{r, messages = F}
 library(easypackages)
-libraries('tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl', 'Lahman')
+libraries('tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl', 'Lahman', 'kableExtra')
 ```
+
+## Introduction
+
+In Chile, the higher education system is made up of technical training centers, professional institutes and universities. The entrance to the universities has a dual behavior. On the one hand, there is a group of selective institutions (public and private) that define a shared set of rules and procedures for admitting students, known as the Single Admission System (SAS); on the other hand, there is a set of private institutions that can establish autonomous selection mechanisms [@espinoza2013equidad].
+
+The SAS is a process divided into four stages: registration, administration of tests, application and selection. In this process, students who have just graduated from secondary education who want to enter higher education mainly participate. The selection tests (also known as PSU) that must be taken measure knowledge of Mathematics, Language, Social Sciences and Natural Sciences, which are necessary to study university careers (DEMRE, 2015). The results in these tests are part of a composite score with which students apply to different programs. In addition to the tests, the scores derived from the high school grades (NEM) and the position that students obtained in their high school of graduation (Ranking) are important.
+
+Composite score may vary across programs. Usually, scores in Mathematics and Language are mandatory, while Social and Natural Sciences are required in specific cases. PSU tests can weigh up to 60% of the composite score; the other 40% is distributed between the NEM and the Ranking (Larroucau, 2014).
+
+The chances of being selected for university are strongly linked to performance on the PSU tests (Larroucau, Ríos, & Mizala, 2015). The drawback is that various research findings have shown that PSU performance is conditioned by the socioeconomic characteristics of the students [@medina2014predictibilidad; @santelices2018high]. Among the most important variables to enter the university were family income, parental education and the sector of the graduating school (Brunner, 2010; Leyton, Vásquez and Fuenzalida, 2012; Gil, Frites and Muñoz, 2014).
+
+For this reason, in the last two decades, several educational reforms have been implemented to reduce selection bias (Chiroleu, 2009; Bellei, 2013). Some researchers have proposed reducing the weight of the PSU in the composite scores and increasing the relevance of the NEM and the Ranking, since these scores would be less affected by educational segmentation (Gil and Canto, 2012; Meneses and Toro, 2012 ; Román, 2012; Gil, Paredes and Sánchez, 2013; Bellei, 2018).
+
+In summary, the results of several investigations suggest that admission to selective universities in Chile should be constantly examined. The objective of this project is to explore the possibilities that students have to enter higher education, especially when considering the effect of different economic and cultural backgrounds. Data analysis includes exploration of means, relative frequencies, and estimation of a binary logistic regression model.
 
 ## Description of data
 
 ```{r}
 registration <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv")
+
+socioeconomic <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/B_Socioeconomico/B_SOCIOECONOMICO_DOMICILIO_PDT_2021_PUB_MRUN.csv")
+
+application <-read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/C_Postulacion_Seleccion/C_POSTULANTES_SELECCION_PDT_2021_PUB_MRUN.csv")
+
+admission <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/D_Matricula_MRUN/D_MATRICULA_PDT__2021_PUB_MRUN.csv")
 ```
 
 ```{r}
@@ -54,24 +76,10 @@ a <- registration%>%
 
 colnames(a) <- c('MRUN', 'RBD', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs','sector')
 
-#Enseñanza Media H-C niños y jóvenes
-#Enseñanza Media Técnico –Profesional Comercial Niños
-#Enseñanza Media T-P Industrial Niños
-#Enseñanza Media T-P Técnica Niños
-```
-
-```{r}
-socioeconomic <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/B_Socioeconomico/B_SOCIOECONOMICO_DOMICILIO_PDT_2021_PUB_MRUN.csv")
-```
-
-```{r}
 b <- socioeconomic%>%
   dplyr::select(MRUN, INGRESO_PERCAPITA_GRUPO_FA, EDUCACION_MADRE, EDUCACION_PADRE)
 ab <- left_join(a, b, by = 'MRUN')
-```
 
-
-```{r}
 ab <- ab%>%
   mutate(
     inc = INGRESO_PERCAPITA_GRUPO_FA,
@@ -88,26 +96,14 @@ ab <- ab%>%
                            ifelse(inc == 5|inc == 6, 'Q3',
                                   ifelse(inc == 7|inc == 8, 'Q4','Q5')))))%>%
   dplyr::select('MRUN', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs', 'sector', 'ed_dad', 'ed_mom', 'income')
-```
 
-```{r}
-application <-read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/C_Postulacion_Seleccion/C_POSTULANTES_SELECCION_PDT_2021_PUB_MRUN.csv")
-```
-
-```{r}
 c <- application%>%
   dplyr::select(MRUN, SITUACION_POSTULANTE)%>%
   mutate(
     appl = ifelse(SITUACION_POSTULANTE == 'P', 1,0))%>%
   dplyr::select(MRUN, appl)
 abc <- left_join(ab, c, by = 'MRUN')
-```
 
-```{r}
-admission <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/D_Matricula_MRUN/D_MATRICULA_PDT__2021_PUB_MRUN.csv")
-```
-
-```{r}
 d <- admission%>%
   dplyr::select(MRUN, VIA_ADMISION)%>%
   mutate(
@@ -116,9 +112,7 @@ d <- admission%>%
   dplyr::select(MRUN, admitted)%>%
   unique()
 abcd <- left_join(abc, d, by = 'MRUN')
-```
 
-```{r}
 colnames(abcd) <- c('ID', 'GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_DAD', 'ED_MOM', 'INCOME', 'APPLY', 'ADM')
 
 abcd <- abcd%>%
@@ -139,12 +133,34 @@ abcd <- abcd%>%
 
 data <- abcd%>%
   dplyr::select('GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'Q2', 'Q3', 'Q4', 'Q5', 'APPLY', 'ADM')
+
+summary(data)
+
+rm(a, b, c, d, ab, abc, abcd, admission, application, registration, socioeconomic)
 ```
 
-The data used corresponds to the University Admission process in Chile during 2018. The dataset includes:
-- 4 background variables – gender, family income, parents’ education, and type of high school.
-- 3 academic performance variables – GPA, PSU Math, and PSU Language
-- 1 admission status variable – being enrolled or not in one university.
+```{r}
+codebook <- data.frame(cbind(
+  Variable = c('GPA','NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'INCOME_Q', 'APPLY', 'ADM'),
+  Description = c('High school grade point average.', 'Standardized high school grade point average.', 'Relative position of the student in his or her school of graduation', 'Standardized score in the Language PSU', 'Standardized score in the Mathematics PSU', 'gender of student', 'Type of school, Technical-professional or Humanist, from which the student graduated', "Sector to which the student's school of graduation belongs", 'Higher educational level of the father or mother',"Quintile of economic income to which the student's family belongs (dummy)", "Student's application to a university", 'Admission of the student to a university'),
+  Type = c('Continuous','Continuous','Continuous','Continuous','Continuous','Binary (0 = Male, 1 = Female)','Binary (0 = Humanist, 1 = Technical school)','Binary (0 = Public, 1 = Private)','Categorical (0 = Primary, 1 = Secondary, 2 = Tertiary)','Categorical (Q1 [Ref.], Q2, Q3, Q4, Q5)','Binary (0 = Did not apply, 1 = Applied)','Binary (0 = Not admitted, 1 = Admitted)')))
+```
+
+The data used corresponds to the University Admission process in Chile during 2021.
+
+276,059
+
+The dataset include:
+- 5 background variables – gender, family income, parents’ education, type of high school and sector.
+- 5 academic performance variables – GPA, NEM, RKG, PSU Math, and PSU Language.
+- 1 admission status variable – whether or not the student is enrolled in a university. Table 1 includes more details:
+
+```{r, include=TRUE, echo=FALSE}
+kable(codebook,
+      caption = 'Table 1: List of variables')%>%
+  kable_styling(bootstrap_options = c('bordered', 'condensed'), full_width = F, position = 'center', font_size =12)%>%
+      column_spec(1, italic = T, width = '.75in')
+```
 
 ## Research questions
 
@@ -160,3 +176,5 @@ Binary Logistic Regression. In addition to analyze the estimated probabilities, 
 
 Rationale for the model proposed
 To answer our research questions, we need a classification approach. Due to the binary coded dependent variable (0 = not admitted, 1 = admitted), a binary logistic regression model is appropriate to avoid some of the problems of using a multiple linear regression.
+
+## Bibliography
