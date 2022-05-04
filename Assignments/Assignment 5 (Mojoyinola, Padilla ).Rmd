@@ -9,6 +9,8 @@ output:
     theme: simplex
     highlight: textmate
 subtitle: <center> <h1>User Created Functions and Bootstrap</h1> </center>
+editor_options: 
+  chunk_output_type: console
 ---
 
 <style type="text/css">
@@ -52,25 +54,17 @@ head(resample_penguins(penguins))
 
 If sampling with replacement works, thus we should observe more than one ID repeated in the new sample.
 
-```{r graph_rep, include = T, echo=FALSE}
+```{r, include = T, echo=FALSE}
 resample_penguins(penguins) %>% 
   count(penguin_id) %>%
   gf_col(n ~ penguin_id)%>%
   gf_labs(
     title = "Resampling penguins ID",
-    #subtitle = "(at baseline)",
-    #color = "Abused substance: ",
     x = "Penguin ID",
-    y = "Repetitions",
-    #caption = "Source: HELPrct"
-    )%>%
+    y = "Repetitions")%>%
   gf_theme(theme_classic()) %>%
   gf_theme(
-    #axis.text.y = element_blank(),
-    #legend.position = "top",
-    plot.title = element_text(hjust = 0.5, color = "navy"),
-    #plot.subtitle = element_text(hjust = 0.5, color = "navy", size = 12)
-  )
+    plot.title = element_text(hjust = 0.5, color = "navy"))
 ```
 
 3. Given the function created in #1, let’s add a function argument to the function. Add a function argument that allows users to control whether sampling with replacement or without replacement is performed.
@@ -182,14 +176,14 @@ p1 <- ggplot(rep1, aes(means))+
   geom_histogram(fill = 'blue', color = 'white', binwidth = 5) +
   labs(title = 'Bootstrap results: penguin body mass averages',
        x = NULL, y = 'Count')+
-  geom_text(aes(x = 4100, y = 60, label = "n = 2.000"), vjust = "inward", hjust = "inward", color = "blue")+
+  geom_text(aes(x = 4100, y = 60, label = "n = 2,000"), vjust = "inward", hjust = "inward", color = "blue")+
   theme_bw()+
   coord_cartesian(xlim = c(4065,4340))
 
 p2 <- ggplot(rep2, aes(means))+
   geom_histogram(fill = 'red', color = 'white', binwidth = 5) +
   labs(x = 'Means (grams)', y = 'Count')+
-  geom_text(aes(x = 4100, y = 120, label = "n = 4.000"), vjust = "inward", hjust = "inward", color = "red")+
+  geom_text(aes(x = 4100, y = 120, label = "n = 4,000"), vjust = "inward", hjust = "inward", color = "red")+
   theme_bw()+
   coord_cartesian(xlim = c(4065,4340))
 
