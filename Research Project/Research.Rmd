@@ -1,0 +1,393 @@
+---
+title: "<center> <h1>Exploring the probabilities of being admitted to university in Chile based on socioeconomic and academic attributes</h1> </center>"
+author:
+- name: Mubarak Mojoyinola and Geraldo Padilla
+  affiliation: The University of Iowa
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: simplex
+    highlight: textmate
+  word_document: default
+bibliography: references.bib
+csl: apa.csl
+tags:
+- PSU
+- Admission tests
+abstract: |
+  This project analyzes the probabilities of being admitted to university in Chile in the 2021 admission process. Admission is based on PSU results and other 2 criteria associated with academic performance during high school (GPA and Ranking), however, there could be  other 'non-academic' criteria interfering in the opportunities to being admitted (socioeconomic background).
+---
+
+<style type="text/css">
+body{
+  font-family: Arial;
+  font-size: 12pt;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = F, echo = F)
+```
+
+```{r packages}
+#if (!require("easypackages")) install.packages("easypackages")
+library(easypackages)
+libraries('dplyr', 'tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl', 'Lahman', 'kableExtra', 'GGally', 'modelr', 'broom', 'DiagrammeR')
+```
+
+## Introduction
+
+In Chile, the higher education system is made up of technical training centers, professional institutes and universities. The entrance to the universities has a dual behavior. On the one hand, there is a group of selective institutions (public and private) that define a shared set of rules and procedures for admitting students, known as the Single Admission System (SAS); on the other hand, there is a set of private institutions that can establish autonomous selection mechanisms [@espinoza2013equidad].
+
+The SAS is a process divided into four stages: registration, administration of tests, application and selection. In this process, students who have just graduated from secondary education who want to enter higher education mainly participate. The selection tests (also known as PSU) that must be taken measure knowledge of Mathematics, Language, Social Sciences and Natural Sciences, which are necessary to study university careers [@DEMRE2015compendio;@espinoza2017acceso]. The results in these tests are part of a composite score with which students apply to different programs. In addition to the tests, the scores derived from the high school grades (NEM) and the position that students obtained in their high school of graduation (Ranking) are important.
+
+Composite score may vary across programs. Usually, scores in Mathematics and Language are mandatory, while Social and Natural Sciences are required in specific cases. PSU tests can weigh up to 60% of the composite score; the other 40% is distributed between the NEM and the Ranking [@antivilo2017factores].
+
+The chances of being selected for university are strongly linked to performance on the PSU tests [@larroucau2015efecto]]. The drawback is that various research findings have shown that PSU performance is conditioned by the socioeconomic characteristics of the students [@medina2014predictibilidad; @santelices2018high]. Among the most important variables to enter the university were family income, parental education and the sector of the graduating school [@brunner2011educacion; @leyton2012experiencia; @rodriguez2015nivel].
+
+For this reason, in the last two decades, several educational reforms have been implemented to reduce selection bias [@chiroleu2009inclusion; @bellei2013estudio]. Some researchers have proposed reducing the weight of the PSU in the composite scores and increasing the relevance of the NEM and the Ranking, since these scores would be less affected by educational segmentation [@gil2012case; @meneses2012prediccin; @perez2012que; @bellei2018nueva; @gil2019caracterizacion].
+
+In summary, the results of several investigations suggest that admission to selective universities in Chile should be constantly examined. The objective of this project is to explore the possibilities that students have to enter higher education, especially when considering the effect of different economic and cultural backgrounds. Data analysis includes exploration of means, relative frequencies, and estimation of a binary logistic regression model.
+
+### Research questions
+
+1. What is the contribution of academic performance and socioeconomic background variables to the probability of being admitted at the university in Chile?
+
+1.1 What is the single contribution of each predictor (academic performance and socioeconomic background)?
+
+1.2 Is there any difference in probability of being admitted at the university according to socioeconomic status among students?
+
+## Method
+
+### Dataset
+
+```{r dataset}
+registration <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/A_Inscritos_puntajes/A_INSCRITOS_PUNTAJES_PDT_2021_PUB_MRUN.csv")
+
+socioeconomic <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/B_Socioeconomico/B_SOCIOECONOMICO_DOMICILIO_PDT_2021_PUB_MRUN.csv")
+
+application <-read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/C_Postulacion_Seleccion/C_POSTULANTES_SELECCION_PDT_2021_PUB_MRUN.csv")
+
+admission <- read_csv2("C:/Users/geral/OneDrive - University of Iowa/CIDCIE/1. Bases de Datos/PSU/PSU 2019 - 2021/D_Matricula_MRUN/D_MATRICULA_PDT__2021_PUB_MRUN.csv")
+```
+
+```{r data_manipulation}
+a <- registration%>%
+  dplyr::select(MRUN, COD_SEXO, RBD, CODIGO_ENS, RAMA_EDUCACIONAL,
+         DEPENDENCIA, PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING,
+         CLEC_ACTUAL, MATE_ACTUAL, PUNTAJES_PROCESO)%>%
+  dplyr::filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS %in% c('310', '410', '510', '610'))%>%
+  dplyr::select(MRUN, COD_SEXO, RBD, RAMA_EDUCACIONAL, DEPENDENCIA,
+  PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL)%>%
+  mutate(
+    gender = ifelse(COD_SEXO == 2, 1,0),
+    type_hs = ifelse(RAMA_EDUCACIONAL == 'H1', 0,1),
+    sector = ifelse(DEPENDENCIA == 3|DEPENDENCIA == 4, 1,0))%>%
+  dplyr::select(MRUN,RBD,PROMEDIO_NOTAS, PTJE_NEM, PTJE_RANKING, CLEC_ACTUAL,MATE_ACTUAL,gender, type_hs,sector)
+
+colnames(a) <- c('MRUN', 'RBD', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs','sector')
+
+b <- socioeconomic%>%
+  dplyr::select(MRUN, INGRESO_PERCAPITA_GRUPO_FA, EDUCACION_MADRE, EDUCACION_PADRE)
+ab <- left_join(a, b, by = 'MRUN')
+
+ab <- ab%>%
+  mutate(
+    inc = INGRESO_PERCAPITA_GRUPO_FA,
+    ed_m = EDUCACION_MADRE,
+    ed_d = EDUCACION_PADRE,
+    ed_dad = ifelse(ed_d >= 0 & ed_d <=5, 0,
+                    ifelse(ed_d >= 6 & ed_d <= 9, 1,
+                           ifelse(ed_d == 13, NA, 2))),
+    ed_mom = ifelse(ed_m >= 1 & ed_m <= 5, 0,
+                    ifelse(ed_m >= 6 & ed_m <= 9, 1,
+                           ifelse(ed_m == 13, NA, 2))),
+    income = ifelse(inc == 1|inc == 2 | inc == 3, 0,
+                    ifelse(inc == 4|inc == 5 | inc == 6 | inc == 7,  1, 2)))%>%
+  dplyr::select('MRUN', 'gpa', 'NEM', 'RKG', 'LEN', 'MATH', 'gender', 'type_hs', 'sector', 'ed_dad', 'ed_mom', 'income')
+
+c <- application%>%
+  dplyr::select(MRUN, SITUACION_POSTULANTE)%>%
+  mutate(
+    appl = ifelse(SITUACION_POSTULANTE == 'P', 1,0))%>%
+  dplyr::select(MRUN, appl)
+abc <- left_join(ab, c, by = 'MRUN')
+
+d <- admission%>%
+  dplyr::select(MRUN, VIA_ADMISION)%>%
+  mutate(
+    admitted = ifelse(VIA_ADMISION > 0, 1, 0))%>%
+  filter(!is.na(MRUN))%>%
+  dplyr::select(MRUN, admitted)%>%
+  unique()
+abcd <- left_join(abc, d, by = 'MRUN')
+
+colnames(abcd) <- c('ID', 'GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_DAD', 'ED_MOM', 'INCOME', 'APPLY', 'ADM')
+
+abcd <- abcd%>%
+  mutate(
+    NEM = ifelse(NEM == 0, NA, NEM),
+    RKG = ifelse(RKG == 0, NA, RKG),
+    LEN = ifelse(LEN == 0, NA, LEN),
+    MATH = ifelse(MATH == 0, NA, MATH),
+    dad_miss = ifelse(is.na(ED_DAD), ED_MOM, ED_DAD),
+    mom_miss = ifelse(is.na(ED_MOM), ED_DAD, ED_MOM),
+    ED_PARENTS = ifelse(dad_miss >= mom_miss, dad_miss, mom_miss),
+    ED_SECONDARY = ifelse(ED_PARENTS == 1, 1, 0),
+    ED_TERTIARY =   ifelse(ED_PARENTS == 2, 1, 0),
+    MEDIUM_INCOME = ifelse(INCOME == 1, 1,0),
+    HIGH_INCOME = ifelse(INCOME == 2, 1,0),
+    APPLY = ifelse(is.na(APPLY), 0, APPLY),
+    ADM = ifelse(is.na(ADM), 0, 1))
+
+data <- abcd%>%
+  dplyr::select('GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'MEDIUM_INCOME', 'HIGH_INCOME', 'APPLY', 'ADM', 'ED_SECONDARY', 'ED_TERTIARY')%>%
+  filter(LEN > 0 & MATH > 0)
+rm(a, b, c, d, ab, abc, abcd, admission, application, registration, socioeconomic)
+```
+
+```{r codebook}
+codebook <- data.frame(cbind(
+  Variable = c('GPA','NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'INCOME_Q', 'APPLY', 'ADM'),
+  Description = c('High school grade point average.', 'Standardized high school grade point average.', 'Relative position of the student in his or her school of graduation', 'Standardized score in the Language PSU', 'Standardized score in the Mathematics PSU', 'gender of student', 'Type of school, Technical-professional or Humanist, from which the student graduated', "Sector to which the student's school of graduation belongs", 'Higher educational level of the father or mother',"Quintile of per capita income to which the student's family belongs (1 USD = 752.9 CLP)", "Student's application to a university", 'Admission of the student to a university'),
+  Type = c('Continuous','Continuous','Continuous','Continuous','Continuous','Binary (0 = Male, 1 = Female)','Binary (0 = Humanist, 1 = Technical school)','Binary (0 = Public, 1 = Private)','Categorical (0 = Primary, 1 = Secondary, 2 = Tertiary)','Categorical (Q1 = less than 99.6, Q2 = 99.7-167.4, Q3 = 167.5-257.7, Q4 = 257,8-468.9, Q5 = 469.0 and more)','Binary (0 = Did not apply, 1 = Applied)','Binary (0 = Not admitted, 1 = Admitted)')))
+```
+
+The data used corresponds to the University Admission process in Chile during 2021.
+
+276,059
+
+The dataset include:
+- 5 background variables – gender, family income, parents’ education, type of high school and sector.
+- 5 academic performance variables – GPA, NEM, RKG, PSU Math, and PSU Language.
+- 1 admission status variable – whether or not the student is enrolled in a university. Table 1 includes more details:
+
+```{r code_kable, include=TRUE}
+kable(codebook,
+      caption = 'Table 1: List of variables')%>%
+  kable_styling(bootstrap_options = c('bordered', 'condensed'), full_width = F, position = 'center', font_size =12)%>%
+      column_spec(1, italic = T, width = '.75in')
+```
+
+### Sample
+
+### Procedure
+
+Binary Logistic Regression. In addition to analyze the estimated probabilities, we will also explore the effect size of the predictors via Odds Ratios.
+
+Rationale for the model proposed
+To answer our research questions, we need a classification approach. Due to the binary coded dependent variable (0 = not admitted, 1 = admitted), a binary logistic regression model is appropriate to avoid some of the problems of using a multiple linear regression.
+
+## Analysis
+
+```{r ggpairs, include=TRUE}
+data %>%
+  dplyr::select(NEM, RKG, LEN, MATH) %>%
+  na.omit()%>%
+  ggpairs()
+```
+
+```{r data_means}
+gender_means <- data%>%
+  na.omit()%>%
+  group_by(GENDER)%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))%>%
+  rename(var = GENDER)%>%
+  mutate(var = ifelse(var == 0, 'Male', 'Female'))
+
+type_means <- data%>%
+  na.omit()%>%
+  group_by(TYPE)%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))%>%
+  rename(var = TYPE)%>%
+  mutate(var = ifelse(var == 0, 'Humanist', 'Technical'))
+
+sector_means <- data%>%
+  na.omit()%>%
+  group_by(SECTOR)%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))%>%
+  rename(var = SECTOR)%>%
+  mutate(var = ifelse(var == 0, 'Public', 'Private'))
+
+parents_means <- data%>%
+  na.omit()%>%
+  group_by(ED_PARENTS)%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))%>%
+  rename(var = ED_PARENTS)%>%
+  mutate(var = ifelse(var == 0, 'Primary',
+                      ifelse(var == 1, 'Secondary', 'Tertiary')))
+
+income_means <- data%>%
+  na.omit()%>%
+  group_by(as.numeric(INCOME2))%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))
+colnames(income_means)[1] <- 'var'
+income_means <- income_means%>%
+  mutate(var = ifelse(var == 0, 'Q1',
+                    ifelse(var == 1, 'Q2',
+                           ifelse(var == 2, 'Q3',
+                                  ifelse(var == 3, 'Q4','Q5')))))
+
+apply_means <- data%>%
+  na.omit()%>%
+  group_by(APPLY)%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))%>%
+  rename(var = APPLY)%>%
+  mutate(var = ifelse(var == 0, 'Did not apply', 'Applied'))
+
+adm_means <- data%>%
+  na.omit()%>%
+  group_by(ADM)%>%
+  summarise(
+    mean_len = mean(LEN),
+    sd_len = sd(LEN),
+    mean_math = mean(MATH),
+    sd_math = sd(MATH),
+    mean_nem = mean(NEM),
+    sd_nem = sd(NEM),
+    mean_rkg = mean(RKG),
+    sd_rkg = sd(RKG))%>%
+  rename(var = ADM)%>%
+  mutate(var = ifelse(var == 0, 'Not admitted', 'Admitted'))
+
+data_means <- dplyr::bind_rows(
+  gender_means,
+  type_means,
+  sector_means,
+  parents_means,
+  income_means,
+  apply_means,
+  adm_means)
+data_means
+```
+
+```{r means_sd, include=TRUE}
+kable(data_means,
+      digits = 2,
+      col.names = c('Variable', 'Mean', 'SD','Mean', 'SD','Mean', 'SD','Mean', 'SD'),
+      align = 'lcccccccc',
+      caption = 'Statistic descriptives by attributes')%>%
+  kable_styling(bootstrap_options = c('striped','condensed', 'bordered'),
+                full_width = F, position = 'center', font_size =12)%>%
+  column_spec(1, italic = T, width = '.75in')%>%
+  row_spec(0, bold = T)%>%
+  add_header_above(c('', 'Language' = 2, 'Mathematics' = 2, 'NEM' = 2, 'Ranking' = 2))%>%
+  kableExtra::group_rows('Gender', 1, 2) %>%
+  kableExtra::group_rows('Type of High school', 3, 4) %>%
+  kableExtra::group_rows('School Sector', 5, 6)%>%
+  kableExtra::group_rows('Educational Level of Parents', 7, 9) %>%
+  kableExtra::group_rows('Quintile of per capita Income', 10, 14) %>%
+  kableExtra::group_rows('Application', 15, 16) %>%
+  kableExtra::group_rows('Admission', 17, 18)
+```
+
+```{r, include=TRUE}
+grViz("digraph flowchart {
+
+label= 'Flowchart Admission process 2021';
+labelloc=top;
+labeljust=left;
+
+# node definitions with substituted label text
+node [fontname = Arial, shape = rectangle, fontsize = 10]        
+tab1 [label = '@@1']
+tab2 [label = '@@2']
+tab3 [label = '@@3']
+tab4 [label = '@@4']
+tab5 [label = '@@5']
+
+# edge definitions with the node IDs
+tab1 -> tab2;
+tab2 -> tab3;
+tab3 -> tab4;
+tab4 -> tab5
+}
+
+[1]: 'Registration (n = 276,059)'
+[2]: 'Participants 2021 graduates of regular education levels (n = 211,985)'
+[3]: 'Students taking the PSU Tests (n = 184,221)'
+[4]: 'Students who applied to a university (n = 90,120)'
+[5]: 'Admitted students (75,544)'
+")
+```
+
+```{r mean_centered}
+data <- data%>%
+  mutate(
+    NEM = NEM - mean(NEM, na.rm = T),
+    RKG = RKG - mean(RKG, na.rm = T),
+    LEN = LEN - mean(LEN, na.rm = T),
+    MATH = MATH - mean(MATH, na.rm = T))
+```
+
+```{r BLR}
+m0 <- glm(ADM ~ 1, family = binomial(link = 'logit'), data = data)
+summary(m0)
+1/(1+exp(-1*coef(m0)))
+prop.table(table(data$ADM))
+
+m1 <- glm(ADM ~ 1 + RKG + LEN + MATH, family = binomial(link = 'logit'), data = data)
+summary(m1)
+
+wald_m1 = glht(m1, linfct = c('RKG=0','LEN=0','MATH=0'))
+summary(wald_m1, test = Chisqtest()) # Joint chi-square test
+
+m2 <- glm(ADM ~ 1 + RKG + LEN + MATH + GENDER + MEDIUM_INCOME + HIGH_INCOME + ED_SECONDARY + ED_TERTIARY + SECTOR + TYPE, family = binomial(link = 'logit'), data = data)
+summary(m2)
+
+wald_m2 = glht(m2, linfct = c('GENDER=0', 'MEDIUM_INCOME=0', 'HIGH_INCOME=0', 'ED_SECONDARY=0', 'ED_TERTIARY=0', 'SECTOR=0', 'TYPE=0'))
+summary(wald_m1, test = Chisqtest()) # Joint chi-square test
+
+AIC(m1); BIC(m1); -2*logLik(m1)
+AIC(m2); BIC(m2); -2*logLik(m2)
+```
+
+## Bibliography

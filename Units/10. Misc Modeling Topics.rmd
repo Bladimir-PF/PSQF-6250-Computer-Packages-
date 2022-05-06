@@ -148,7 +148,7 @@ surv_mod <- glm(Survived~1+factor(Pclass)+Fare+Sex+Age, family = binomial(link =
 summary(surv_mod)
 
 prob_mod <- titanic%>%
-  select(Survived, Pclass, Fare, Sex, Age)%>%
+  dplyr::select(Survived, Pclass, Fare, Sex, Age)%>%
   na.omit()%>%
   mutate(
     prob = predict(surv_mod, type = 'response')
