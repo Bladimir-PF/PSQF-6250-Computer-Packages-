@@ -77,7 +77,7 @@ tidy(lm(metacritic~rottentomatoes - 1, data = fandango)) #it is not adjusting by
 
 ```{r}
 meta_rotten <- fandango%>%
-  select(film, year, rottentomatoes, metacritic)%>%
+  dplyr::select(film, year, rottentomatoes, metacritic)%>%
   gather(group, rating, rottentomatoes, metacritic)#it stack the data
 meta_rotten
 
