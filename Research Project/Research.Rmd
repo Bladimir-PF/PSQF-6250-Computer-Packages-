@@ -32,32 +32,42 @@ knitr::opts_chunk$set(include = F, echo = F)
 ```{r packages}
 #if (!require("easypackages")) install.packages("easypackages")
 library(easypackages)
-libraries('dplyr', 'tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl', 'Lahman', 'kableExtra', 'GGally', 'modelr', 'broom', 'DiagrammeR')
+libraries('dplyr', 'tidyverse', 'ggplot2', 'glm2', 'VGAM', 'multcomp', 'stringr', 'readxl', 'Lahman', 'kableExtra', 'GGally', 'modelr', 'broom', 'DiagrammeR', "PerformanceAnalytics")
 ```
 
 ## Introduction
 
 In Chile, the higher education system is made up of technical training centers, professional institutes and universities. The entrance to the universities has a dual behavior. On the one hand, there is a group of selective institutions (public and private) that define a shared set of rules and procedures for admitting students, known as the Single Admission System (SAS); on the other hand, there is a set of private institutions that can establish autonomous selection mechanisms [@espinoza2013equidad].
 
-The SAS is a process divided into four stages: registration, administration of tests, application and selection. In this process, students who have just graduated from secondary education who want to enter higher education mainly participate. The selection tests (also known as PSU) that must be taken measure knowledge of Mathematics, Language, Social Sciences and Natural Sciences, which are necessary to study university careers [@DEMRE2015compendio;@espinoza2017acceso]. The results in these tests are part of a composite score with which students apply to different programs. In addition to the tests, the scores derived from the high school grades (NEM) and the position that students obtained in their high school of graduation (Ranking) are important.
+The SAS is a process divided into four stages: registration, administration of tests, application and admission In this process, students who have just graduated from secondary education who want to enter higher education mainly participate. The selection tests (also known as PSU) that must be taken measure knowledge of Mathematics, Language, Social Sciences and Natural Sciences, which are necessary to study university careers [@DEMRE2015compendio;@espinoza2017acceso]. The results in these tests are part of a composite score with which students apply to different programs. In addition to the tests, the scores derived from the high school grades (NEM) and the position that students obtained in their high school of graduation (Ranking) are important.
 
 Composite score may vary across programs. Usually, scores in Mathematics and Language are mandatory, while Social and Natural Sciences are required in specific cases. PSU tests can weigh up to 60% of the composite score; the other 40% is distributed between the NEM and the Ranking [@antivilo2017factores].
 
-The chances of being selected for university are strongly linked to performance on the PSU tests [@larroucau2015efecto]]. The drawback is that various research findings have shown that PSU performance is conditioned by the socioeconomic characteristics of the students [@medina2014predictibilidad; @santelices2018high]. Among the most important variables to enter the university were family income, parental education and the sector of the graduating school [@brunner2011educacion; @leyton2012experiencia; @rodriguez2015nivel].
+The chances of being selected for university are strongly linked to performance on the PSU tests [@larroucau2015efecto]. The drawback is that various research findings have shown that PSU performance is conditioned by the socioeconomic characteristics of the students [@medina2014predictibilidad; @santelices2018high]. Among the most important variables to enter the university were family income, parental education and the sector of the graduating school [@brunner2011educacion; @leyton2012experiencia; @rodriguez2015nivel].
 
-For this reason, in the last two decades, several educational reforms have been implemented to reduce selection bias [@chiroleu2009inclusion; @bellei2013estudio]. Some researchers have proposed reducing the weight of the PSU in the composite scores and increasing the relevance of the NEM and the Ranking, since these scores would be less affected by educational segmentation [@gil2012case; @meneses2012prediccin; @perez2012que; @bellei2018nueva; @gil2019caracterizacion].
+For this reason, in the last two decades, several educational reforms have been implemented to reduce selection bias [@chiroleu2009inclusion; @bellei2013estudio]. Some researchers have proposed reducing the weight of the PSU in the composite scores and increasing the relevance of the NEM and the Ranking, since these scores would be less affected by educational segmentation [@gil2012case; @meneses2012prediccin; @perez2012que; @bellei2018nueva; @gil2019caracterizacion]. Both indicators, NEM and Ranking, are linked to high school GPA; the former is a standardized score assigned to the GPA, and the latter is the standardized score assigned to the position the student achieved in his/her high school with his/her GPA.
 
-In summary, the results of several investigations suggest that admission to selective universities in Chile should be constantly examined. The objective of this project is to explore the possibilities that students have to enter higher education, especially when considering the effect of different economic and cultural backgrounds. Data analysis includes exploration of means, relative frequencies, and estimation of a binary logistic regression model.
+In summary, the results of several investigations suggest that admission to selective universities in Chile should be constantly examined. 
+
+The objective of this project is to explore the possibilities that students have to enter higher education, especially when considering the effect of different economic and cultural backgrounds. Data analysis includes exploration of means, relative frequencies, and estimation of a binary logistic regression model.
 
 ### Research questions
 
+In specific, this research project seeks to explore the following questions:
+
 1. What is the contribution of academic performance and socioeconomic background variables to the probability of being admitted at the university in Chile?
 
-1.1 What is the single contribution of each predictor (academic performance and socioeconomic background)?
+1.1 What is the single contribution of each predictor (academic performance and socioeconomic background) to the probability of being admitted at the university in Chile?
 
 1.2 Is there any difference in probability of being admitted at the university according to socioeconomic status among students?
 
-## Method
+## Design
+
+To answer the research questions, this project analyzes different variables involved in the admission process to higher education in Chile during 2021, such as academic performance during high school, PSU results and students' socioeconomic background. The dependent variable is admission [ADM], which reflects whether students were admitted to the university (0 = not admitted, 1 = admitted).
+
+The first section explores the correlations between academic outcomes to visualize the extent to which these indicators conform to the assumption that they are linearly related to each other. The second section describes the means and sd achieved by students on the academic variables as a function of multiple attributes. Finally, the third section applies and fits a binary logistic regression model to estimate the probabilities of being admitted to selective universities. In addition, the effect size of the predictors are analyzed via Odds Ratios.
+
+The research hypothesis is: the probabilities of being admitted to a selective university are significantly affected by socioeconomic background and school characteristics, reproducing cultural and social inequalities in Chile.  
 
 ### Dataset
 
@@ -141,26 +151,20 @@ abcd <- abcd%>%
     ADM = ifelse(is.na(ADM), 0, 1))
 
 data <- abcd%>%
-  dplyr::select('GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'MEDIUM_INCOME', 'HIGH_INCOME', 'APPLY', 'ADM', 'ED_SECONDARY', 'ED_TERTIARY')%>%
+  dplyr::select('GPA', 'NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'MEDIUM_INCOME', 'HIGH_INCOME', 'APPLY', 'ADM', 'ED_SECONDARY', 'ED_TERTIARY', 'INCOME')%>%
   filter(LEN > 0 & MATH > 0)
-rm(a, b, c, d, ab, abc, abcd, admission, application, registration, socioeconomic)
 ```
+
+The admissions process collects information from four sources: enrollment, socioeconomic background, applications and admission results. Most of the information comes from the enrollment data set, which contains the educational background and PSU scores of those persons who enroll to eventually apply and be admitted to a selective university.
+
+Using selection and filtering cases, this project uses a combined dataset with information from the four sources. Three filters were used: year (2021), type of education (regular) and PSU results in Language and Mathematics. Thus, the sample is composed of recent high school graduates who studied under regular education and who had valid scores in the two PSU tests used. Table 1 includes more details:
 
 ```{r codebook}
 codebook <- data.frame(cbind(
   Variable = c('GPA','NEM', 'RKG', 'LEN', 'MATH', 'GENDER', 'TYPE', 'SECTOR', 'ED_PARENTS', 'INCOME_Q', 'APPLY', 'ADM'),
-  Description = c('High school grade point average.', 'Standardized high school grade point average.', 'Relative position of the student in his or her school of graduation', 'Standardized score in the Language PSU', 'Standardized score in the Mathematics PSU', 'gender of student', 'Type of school, Technical-professional or Humanist, from which the student graduated', "Sector to which the student's school of graduation belongs", 'Higher educational level of the father or mother',"Quintile of per capita income to which the student's family belongs (1 USD = 752.9 CLP)", "Student's application to a university", 'Admission of the student to a university'),
+  Description = c('High school grade point average.', 'Standardized high school grade point average.', 'Relative position of the student in his or her school of graduation', 'Standardized score in the Language PSU', 'Standardized score in the Mathematics PSU', 'gender of student', 'Type of high school, Technical-professional or Humanist, from which the student graduated', "Sector to which the student's school of graduation belongs", 'Higher educational level of the father or mother',"Quintile of per capita income to which the student's family belongs (1 USD = 752.9 CLP)", "Student's application to a university", 'Admission of the student to a university'),
   Type = c('Continuous','Continuous','Continuous','Continuous','Continuous','Binary (0 = Male, 1 = Female)','Binary (0 = Humanist, 1 = Technical school)','Binary (0 = Public, 1 = Private)','Categorical (0 = Primary, 1 = Secondary, 2 = Tertiary)','Categorical (Q1 = less than 99.6, Q2 = 99.7-167.4, Q3 = 167.5-257.7, Q4 = 257,8-468.9, Q5 = 469.0 and more)','Binary (0 = Did not apply, 1 = Applied)','Binary (0 = Not admitted, 1 = Admitted)')))
 ```
-
-The data used corresponds to the University Admission process in Chile during 2021.
-
-276,059
-
-The dataset include:
-- 5 background variables – gender, family income, parents’ education, type of high school and sector.
-- 5 academic performance variables – GPA, NEM, RKG, PSU Math, and PSU Language.
-- 1 admission status variable – whether or not the student is enrolled in a university. Table 1 includes more details:
 
 ```{r code_kable, include=TRUE}
 kable(codebook,
@@ -171,21 +175,137 @@ kable(codebook,
 
 ### Sample
 
-### Procedure
+```{r sample_description}
+sample <- registration[,1]
+sample_reg <- registration%>%
+  dplyr::select(MRUN, COD_SEXO, DEPENDENCIA, RAMA_EDUCACIONAL, PUNTAJES_PROCESO, CODIGO_ENS,CLEC_ACTUAL, MATE_ACTUAL)
+sample_soc <- socioeconomic%>%
+  dplyr::select(MRUN, INGRESO_PERCAPITA_GRUPO_FA, EDUCACION_MADRE, EDUCACION_PADRE)
+sample <- left_join(sample, sample_reg, by = 'MRUN')
+sample <- left_join(sample, sample_soc, by = 'MRUN')
+sample <- sample%>%
+  dplyr::filter(PUNTAJES_PROCESO == 1 & CODIGO_ENS %in% c('310', '410', '510', '610') & CLEC_ACTUAL > 0 & MATE_ACTUAL > 0)
 
-Binary Logistic Regression. In addition to analyze the estimated probabilities, we will also explore the effect size of the predictors via Odds Ratios.
+sample <- sample%>%
+  mutate(
+    inc = INGRESO_PERCAPITA_GRUPO_FA,
+    dep = ifelse(DEPENDENCIA == 3|DEPENDENCIA == 4, 1,0),
+    modality  = ifelse(RAMA_EDUCACIONAL == 'H1' | RAMA_EDUCACIONAL == 'H2', 0,1),
+    income  = ifelse(inc == 1|inc == 2 | inc == 3, 0,
+                    ifelse(inc == 4|inc == 5 | inc == 6 | inc == 7,  1, 2)),
+    ed_mom = ifelse(EDUCACION_MADRE > 0 & EDUCACION_MADRE <=5, 0,
+                    ifelse(EDUCACION_MADRE >= 6 & EDUCACION_MADRE <= 9, 1,
+                           ifelse(EDUCACION_MADRE == 13, NA, 2))),
+    ed_dad = ifelse(EDUCACION_PADRE > 0 & EDUCACION_PADRE <=5, 0,
+                    ifelse(EDUCACION_PADRE >= 6 & EDUCACION_PADRE <= 9, 1,
+                           ifelse(EDUCACION_PADRE == 13, NA, 2))))
+prop_inc <- sample%>%
+  na.omit()%>%
+  count(income)%>%
+  mutate(
+    prop = (n/sum(n))*100)%>%
+  dplyr::select(income, prop)%>%
+  rename(var = income)%>%
+  mutate(var = ifelse(var == 0, 'Low',
+                      ifelse(var == 1, 'Medium', 'High')))
 
-Rationale for the model proposed
-To answer our research questions, we need a classification approach. Due to the binary coded dependent variable (0 = not admitted, 1 = admitted), a binary logistic regression model is appropriate to avoid some of the problems of using a multiple linear regression.
+prop_dep <- sample%>%
+  na.omit()%>%
+  count(dep)%>%
+  mutate(
+    prop = (n/sum(n))*100)%>%
+  dplyr::select(dep, prop)%>%
+  rename(var = dep)%>%
+  mutate(var = ifelse(var == 0, 'Public', 'Private'))
+
+prop_mod <- sample%>%
+  na.omit()%>%
+  count(modality)%>%
+  mutate(
+    prop = (n/sum(n))*100)%>%
+  dplyr::select(modality, prop)%>%
+  rename(var = modality)%>%
+    mutate(var = ifelse(var == 0, 'Humanist', 'Technical school'))
+
+prop_dad <- sample%>%
+  na.omit()%>%
+  count(ed_dad)%>%
+  mutate(
+    prop = (n/sum(n))*100)%>%
+  dplyr::select(ed_dad, prop)%>%
+  rename(var = ed_dad)%>%
+  mutate(var = ifelse(var == 0, 'Primary',
+                      ifelse(var == 1, 'Secondary', 'Tertiary')))
+
+prop_mom <- sample%>%
+  na.omit()%>%
+  count(ed_mom)%>%
+  mutate(
+    prop = (n/sum(n))*100)%>%
+  dplyr::select(ed_mom, prop)%>%
+  rename(var = ed_mom)%>%
+  mutate(var = ifelse(var == 0, 'Primary',
+                      ifelse(var == 1, 'Secondary', 'Tertiary')))
+
+prop_gen <- sample%>%
+  na.omit()%>%
+  count(COD_SEXO)%>%
+  mutate(
+    prop = (n/sum(n))*100)%>%
+  dplyr::select(COD_SEXO, prop)%>%
+  rename(var = COD_SEXO)%>%
+    mutate(var = ifelse(var == 1, 'Male', 'Female'))
+
+sample <- dplyr::bind_rows(
+  prop_inc,
+  prop_dep,
+  prop_mod,
+  prop_dad,
+  prop_mom,
+  prop_gen)
+sample
+```
+
+In 2021, 276,059 people registered to participate in the admission process. After filtering the data, the sample size used in this project is 184,221. Table 2 shows the distribution of students according to different characteristics. Almost two-thirds attended private schools (66.8%), and 75.4% graduated from humanistic institutions, which are more oriented to university studies rather than technical ones, which are more focused on job training.
+
+In terms of socioeconomic background, a high proportion of students belong to low-income families (42.9%), and their parents have secondary educational levels. In addition, 54.5% of the students are women.
+
+```{r sample_table, include=TRUE}
+kable(sample,
+      digits = 2,
+      col.names = c('Variable', 'Percentages'),
+      align = 'lc',
+      caption = 'Table 2: Sample description (n = 184,221)')%>%
+  kable_styling(bootstrap_options = c('striped','condensed', 'bordered'),
+                full_width = F, position = 'center', font_size =12)%>%
+  column_spec(1, italic = T)%>%
+  row_spec(0, bold = T)%>%
+  kableExtra::group_rows('Income', 1, 3) %>%
+  kableExtra::group_rows('Sector', 4, 5) %>%
+  kableExtra::group_rows('Type of high school', 6, 7)%>%
+  kableExtra::group_rows('Educational Level of father', 8, 10) %>%
+  kableExtra::group_rows('Educational Level of mother', 11, 13) %>%
+  kableExtra::group_rows('Gender', 14, 15)
+```
 
 ## Analysis
 
-```{r ggpairs, include=TRUE}
-data %>%
-  dplyr::select(NEM, RKG, LEN, MATH) %>%
-  na.omit()%>%
-  ggpairs()
+When analyzing the correlations between the academic factors used in the admissions process (Figure 1), we can observe that their relationships, although significant, are not as strong as expected, especially between NEM and PSU results.
+
+As can be seen in Figure 1, all correlations are positive and significant, especially the relationship between Ranking and NEM, since although they are individual indicators, both are linked to the students' GPA.
+
+Figure 1: Correlation matrix
+
+```{r chart_correlation, include=TRUE, warning=FALSE}
+chart.Correlation(data%>%
+                    dplyr::select(NEM, RKG, LEN, MATH), histogram=TRUE, pch=19)
 ```
+
+The distribution of the PSU results in Language and Mathematics looks normal in both variables, with a mean around 500 points. The distribution of the NEM also looks normal, while the distribution of the Ranking appears skewed to the left. This may be due to the fact that the Ranking takes into account the characteristics of the students' educational context and usually assigns higher scores than the NEM, which causes the distribution to increase at higher levels.
+
+Despite what the admission process assumes, the correlation between NEM and PSU results in Mathematics and Language are not as strong as assumed. This is relevant because one of the most defended properties of the PSU tests is the fact that they are constructed on the basis of the curriculum implemented in high school, so the relationship between these variables would be expected to be greater than that observed.
+
+When analyzing mean PSU test scores and other indicators of academic performance, we found clear differences between students according to personal, school and socioeconomic attributes. 
 
 ```{r data_means}
 gender_means <- data%>%
@@ -251,7 +371,7 @@ parents_means <- data%>%
 
 income_means <- data%>%
   na.omit()%>%
-  group_by(as.numeric(INCOME2))%>%
+  group_by(INCOME)%>%
   summarise(
     mean_len = mean(LEN),
     sd_len = sd(LEN),
@@ -263,10 +383,8 @@ income_means <- data%>%
     sd_rkg = sd(RKG))
 colnames(income_means)[1] <- 'var'
 income_means <- income_means%>%
-  mutate(var = ifelse(var == 0, 'Q1',
-                    ifelse(var == 1, 'Q2',
-                           ifelse(var == 2, 'Q3',
-                                  ifelse(var == 3, 'Q4','Q5')))))
+  mutate(var = ifelse(var == 0, 'Low',
+                    ifelse(var == 1, 'Medium', 'High')))
 
 apply_means <- data%>%
   na.omit()%>%
@@ -317,19 +435,19 @@ kable(data_means,
       caption = 'Statistic descriptives by attributes')%>%
   kable_styling(bootstrap_options = c('striped','condensed', 'bordered'),
                 full_width = F, position = 'center', font_size =12)%>%
-  column_spec(1, italic = T, width = '.75in')%>%
+  column_spec(1, italic = T)%>%
   row_spec(0, bold = T)%>%
   add_header_above(c('', 'Language' = 2, 'Mathematics' = 2, 'NEM' = 2, 'Ranking' = 2))%>%
   kableExtra::group_rows('Gender', 1, 2) %>%
   kableExtra::group_rows('Type of High school', 3, 4) %>%
   kableExtra::group_rows('School Sector', 5, 6)%>%
   kableExtra::group_rows('Educational Level of Parents', 7, 9) %>%
-  kableExtra::group_rows('Quintile of per capita Income', 10, 14) %>%
-  kableExtra::group_rows('Application', 15, 16) %>%
-  kableExtra::group_rows('Admission', 17, 18)
+  kableExtra::group_rows('Income', 10, 12) %>%
+  kableExtra::group_rows('Application', 13, 14) %>%
+  kableExtra::group_rows('Admission', 15, 16)
 ```
 
-```{r, include=TRUE}
+```{r flow_chart, include=TRUE}
 grViz("digraph flowchart {
 
 label= 'Flowchart Admission process 2021';
@@ -369,6 +487,7 @@ data <- data%>%
 ```
 
 ```{r BLR}
+options(scipen=9)
 m0 <- glm(ADM ~ 1, family = binomial(link = 'logit'), data = data)
 summary(m0)
 1/(1+exp(-1*coef(m0)))
@@ -388,6 +507,9 @@ summary(wald_m1, test = Chisqtest()) # Joint chi-square test
 
 AIC(m1); BIC(m1); -2*logLik(m1)
 AIC(m2); BIC(m2); -2*logLik(m2)
+
+DevTest = -2*(logLik(m1)-logLik(m2))
+pchisq((DevTest), df=4, lower.tail=FALSE)
 ```
 
 ## Bibliography
